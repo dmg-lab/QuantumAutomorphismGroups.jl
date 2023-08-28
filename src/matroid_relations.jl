@@ -3,7 +3,7 @@ using Oscar
 import AbstractAlgebra.Generic: FreeAssociativeAlgebra, FreeAssAlgElem, AhoCorasickAutomaton, insert_keyword!, normal_form
 
 function add_new_relation!!(relations::Vector{AbstractAlgebra.Generic.FreeAssAlgElem{T}}, aut::AhoCorasickAutomaton, new_relation::FreeAssAlgElem{T}, relation_count=0::Int) where T
-    normalized = normal_form(new_relation, relations, aut)
+    normalized = new_relation#normal_form(new_relation, relations, aut)
     if !iszero(normalized)
         push!(relations, normalized)
         insert_keyword!(aut, normalized.exps[1], length(relations))
@@ -12,7 +12,7 @@ function add_new_relation!!(relations::Vector{AbstractAlgebra.Generic.FreeAssAlg
 #        interreduce!(relations)
     end
 end
-
+#Type richtig machen Vector{Tupe{Int,Int}}
 function matroid_relations(relation_indices::Vector{Any}, n::Int)
     #Setup
     generator_strings = String[]

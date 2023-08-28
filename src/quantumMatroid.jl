@@ -21,20 +21,6 @@ function partition_by(func::Function, sets)
     return result
 end
 
-   #= 
-u = uniform_matroid(3,4)
-sts = powerset(matroid_groundset(u))
-collect(sts)
-prt = partition_by(x->rank(u,x),sts)
-#merge all sets that dont have a specific rank
-rnk = 3
-has_rank = prt[rnk]
-has_not_rank = setdiff(sts,has_rank)
-for key in keys(prt)
-    prt[key] = reduce(vcat,prt[key])
-end
-prt
-=#
 
 function getRelations_rank(M::MultiSetMatroid)
     matroid = M.classic
@@ -114,10 +100,6 @@ function getRelations(M::MultiSetMatroid,structure::Symbol=:bases)
     return reduce(vcat,rels)
 end
 
-#=
-M = MultiSetMatroid(fano_matroid())
-rels = getRelations(M,:bases)
-=#
 
 function getIdeal(M::MultiSetMatroid,structure::Symbol=:bases; reduce::Bool=false)
     n = length(M.classic)  
@@ -134,73 +116,39 @@ function mygens(a)
   return [a.gens[Val(:O), i] for i in 1:ngens(a)]
 end
 
-function generateSameIdeal(I1,I2, n)
-    gb1 = mygens(I1)
-    gb2 = mygens(I2)
-    for ele in gb1 
-        if !ideal_membership(ele,I2,n)
-            return false
-        end
-    end
-    for ele in gb2 
-        if !ideal_membership(ele,I1,n)
-            return false
-        end
+
+
+function isInIdeal(ele::FreeAssAlgElem{T},gens::Vector{FreeAssAlgElem{T}},aut::AhoCorasickAutomaton) where T
+   nrm = normal_form(ele,gens,aut) 
+   return iszero(nrm) 
+end
+
+function isInIdeal(gens1::Vector{FreeAssAlgElem{T}},gens2::Vector{FreeAssAlgElem{T}},aut2::AhoCorasickAutomaton) where T
+    for ele in gens1 
+        isInIdeal(ele,gens2,aut2) || return false
     end
     return true
 end
-
-function isInIdeal(I1,I2, n)
-    gb1 = mygens(I1)
-    gb2 = mygens(I2)
-    for ele in gb1 
-        if !ideal_membership(ele,I2,n)
-            return false
-        end
-    end
+function generateSameIdeal(gens1::Vector{FreeAssAlgElem{T}},gens2::Vector{FreeAssAlgElem{T}}, aut1::AhoCorasickAutomaton, aut2::AhoCorasickAutomaton) where T
+    isInIdeal(gens1,gens2,aut2) || return false
+    isInIdeal(gens2,gens1,aut1) || return false
     return true
 end
 
 
+function isCommutative(Alg,gens,aut)
+    n = ngens(Alg)
+    for i in 1:n-1, j in i+1:n
+        #print statement every 10%
 
-function isCommutative(Alg,I,n)
-    for i in 1:ngens(Alg),j in 1:ngens(Alg)
         tst = Alg[i]*Alg[j] - Alg[j]*Alg[i]
-        ideal_membership(tst,I,n) || return false
+        if isInIdeal(tst,gens,aut)
+            println("The Ideal is not commutative") 
+            return tst 
+        end
     end
     return true
 end
-
-#= Uniform matroid rank 2 with 3 elements
-
-uni = uniform_matroid(4,5)
-
-Alg, Ideal, gens, aut = getIdeal(uni,:bases);
-Alg, Ideal_C,gb_C, AHO_C = getIdeal(uni,:circuits);
-x= gb_C[end-20]
-
-res = normal_form_with_rep(x,gb_B,AHO_B)
-normal_form_with_rep(res[2],gb_B,AHO_B)
-
-ideal_membership(res[2],Ideal_B,3)
-=#
-
-
-matroid = uniform_matroid(3,7)
-grdSet = matroid.groundset
-c = 5
-d = 3
-
-powerSet_c = multiset_combinations(grdSet,fill(c,length(grdSet)),c)
-s_c = length(powerSet_c)
-
-
-
-
-
-powerSet_d = multiset_combinations(grdSet,fill(d,length(grdSet)),d)
-s_d = length(powerSet_d)
-
 
 function pwrSet(grdSet::Vector{<:Integer})
     powerSet_complete = Vector{Vector{Integer}}()
@@ -233,130 +181,20 @@ function AdjacencyMatrix(v1::Vector{Vector{Integer}},v2::Vector{Vector{Integer}}
 end
 
 
-
-function getRelations2(M::MultiSetMatroid,structure::Symbol=:bases)
-    matroid = M.classic
-    grdSet = matroid.groundset
-end
-
 #=
-uni = uniform_matroid(4,5)
-multiUni = MultiSetMatroid(uni) 
+fan = fano_matroid()
+nfan = non_fano_matroid()
+
+Alg,Ideal_F,gens_F,aut_F = getIdeal(fan,:bases);
+_, Ideal_NF, gens_NF, aut_NF = getIdeal(nfan,:bases);
+
+res = isCommutative(Alg,gens_F,aut_F)
+res = isCommutative(Alg,gens_NF,aut_NF)
 
 
+isInIdeal(gens_NF,gens_F,aut_F)
+isInIdeal(gens_F,gens_NF,aut_NF)
 
-Alg, Ideal_B,gb_B, AHO_B = getIdeal(uni,:bases);
-tst = 1
-
-for x in Alg
-    tst*=x
-end
-
-Alg, Ideal_C,gb_C, AHO_C = getIdeal(uni,:circuits);
-gb_B
-x = gb_C[end-20]
-x= Alg[1]*Alg[7]*Alg[10]*Alg[13]
-x1 = Alg[1]*Alg[8]-Alg[8]*Alg[1]
-
-GB =  Generic.groebner_basis(gb_B)
-auts = Generic.AhoCorasickAutomaton(Vector{Int}[])
-
-rels = []
-rel_count = 0
-for i in 1:length(GB)
-    rel_count += 1
-    add_new_relation!!(GB,auts,GB[i],rel_count)
-end
-
-res = normal_form_with_rep(x,GB,auts)
-res[1]
-normal_form_with_rep(GB[end],gb_B,AHO_B)
-
-x1 
-res[2]
-sol = normal_form_with_rep(GB[4142],vcat(gb_B,GB),AHO_B)
-sol[2]
-sol[1]
-
-
-uni = uniform_matroid(3,4)
-multiUni = MultiSetMatroid(uni) 
-
-
-FreeAssAlg, Ideal_B,gb_B, AHO_B = getIdeal(uni,:bases);
-typeof(Ideal_B)
-rat = FreeAssAlg.base_ring
-
-typeof(FreeAssAlg.base_ring)
-typeof(FreeAssAlg.base_ring)
-
-FreeAssAlg
-save("test",rat)
-typeof( Ideal_B.gens[1])
-
-
-typeof(Ideal_B)
-save("tst.tst",gb_B[1])
-
-
-Alg, Ideal_C,gb_C, AHO_C = getIdeal(uni,:circuits);
-x= Alg[1]*Alg[7]*Alg[10]*Alg[13]
-su = gb_C[116]
-x1 = x * (gb_C[116]+1)
-
-arr = collect(AbstractAlgebra.monomials(x1))
-for y in arr
-    println(ideal_membership(y,Ideal_B,5))
-end
-import AbstractAlgebra: QQ, elem_type
-
-tst = Alg[1]*Alg[7]*Alg[10]*Alg[13]*Alg[10]
-
-
-GB =  Generic.groebner_basis(gb_B)
-auts = Generic.AhoCorasickAutomaton(Vector{Int}[])
-
-rels = []
-rel_count = 0
-for i in 1:length(GB)
-    rel_count += 1
-    add_new_relation!!(GB,auts,GB[i],rel_count)
-end
-GB
-res = normal_form_with_rep(x,GB,auts)
-
-
-
-
-
-
-GB = ideal_membership(tst2,Ideal_B,4)
-
-println.(gb_C[10:120])
-GB =  Generic.groebner_basis(gb_B)
-
-sol = normal_form_with_rep(x1,GB,AHO_B)
-generateSameIdeal(Ideal_C,Ideal_B,4)
-
-idel_membership(x1,Ideal_B,5)
-=#
-
-
-
-
-
-
-
-#=
-gens = ["x","y"]
-A, g = FreeAssociativeAlgebra(Oscar.QQ,gens)
-f = g[1]^2+g[2]
-g = g[2]
-
-x = Oscar.ideal(A,[f,g])
-typeof(x) 
-R, x = QQ["x"]
-typeof(x^2)
 =#
 
 
