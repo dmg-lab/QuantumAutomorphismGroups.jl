@@ -1,4 +1,6 @@
 using Oscar
+using Oscar.JSON
+
 import AbstractAlgebra: Generic.AhoCorasickAutomaton
 
 
@@ -35,8 +37,6 @@ function strToAho(str::String)
         push!(newGoto,newdct)
     end
     newFail = Vector{Int}(x["fail"])
-    x["output"]
-    auts.output
     newOtp = Vector{Tuple{Int,Vector{Int}}}()
     for ele in x["output"]
         push!(newOtp,(ele[1],Vector{Int}(ele[2])))

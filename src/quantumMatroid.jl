@@ -7,6 +7,8 @@ using AbstractAlgebra.Generic
 include("./matroid_relations.jl")
 include("./utils.jl")
 include("./multiSetMatroid.jl")
+include("./save.jl")
+
 
 function partition_by(func::Function, sets)
     result = Dict()
@@ -97,7 +99,7 @@ function getRelations(M::MultiSetMatroid,structure::Symbol=:bases)
 
     end
     rels = unique.(rels)
-    return reduce(vcat,rels)
+    return Vector{Vector{Tuple{Int,Int}}}(reduce(vcat,rels))
 end
 
 
@@ -151,6 +153,40 @@ function isCommutative(gens,aut)
     return true
 end
 
+function isCommutativeThird(gb)
+    Alg = parent(gens[1])
+    n = ngens(Alg)
+    for i in 1:n-1, j in i+1:n
+        #print statement every 10%
+
+        tst = Alg[i]*Alg[j] - Alg[j]*Alg[i]
+        if !iszero(normal_form(tst,gb))
+            println("The Ideal is not commutative") 
+            return tst 
+        end
+    end
+    return true
+end
+
+function isCommutativeSecondVersion(gens,m=3)
+    Alg = parent(gens[1])
+    I = Oscar.FreeAssAlgIdeal(Alg,gens)
+
+    n = ngens(Alg)
+    for i in 1:n-1, j in i+1:n
+        #print statement every 10%
+
+        tst = Alg[i]*Alg[j] - Alg[j]*Alg[i]
+        if !ideal_membership(tst,I,m)
+            println("The Ideal is not commutative") 
+            return tst 
+        end
+    end
+    return true
+end
+
+
+
 function pwrSet(grdSet::Vector{<:Integer})
     powerSet_complete = Vector{Vector{Integer}}()
     for i in 1:length(grdSet)
@@ -180,6 +216,200 @@ function AdjacencyMatrix(v1::Vector{Vector{Integer}},v2::Vector{Vector{Integer}}
     end        
     return A
 end
+
+
+function getQuantumPermutationGroup(n::Int)
+    generator_strings = String[]
+    relation_count = 0
+    for i in 1:n, j in 1:n
+            push!(generator_strings, "u[$i,$j]")
+    end
+    A, g = FreeAssociativeAlgebra(Oscar.QQ, generator_strings)
+    u = Matrix{elem_type(A)}(undef, n, n)
+    for i in 1:n, j in 1:n
+            u[i, j] = g[(i-1)*n + j]
+    end
+    relations = elem_type(A)[]
+    aut = AhoCorasickAutomaton(Vector{Int}[])
+
+
+    #Squared relations
+    for i in 1:n, j in 1:n
+        new_relation = u[i, j] * u[i, j] - u[i, j]
+        if length(relations) == 0
+            push!(relations, new_relation)
+            insert_keyword!(aut, new_relation.exps[1], length(relations))
+        else
+            add_new_relation!!(relations, aut, new_relation)
+        end
+            for k in 1:n
+                    if k != j
+                        new_relation = u[i,j] * u[i, k]
+                        add_new_relation!!(relations, aut, new_relation)
+                        new_relation = u[j, i]*u[k, i]
+                        add_new_relation!!(relations, aut, new_relation)
+                    end
+            end
+    end
+
+    #row and column sum relations
+    for i in 1:n
+        new_relation_row = -1
+        new_relation_col = -1
+        for k in 1:n
+            new_relation_row += u[i,k]
+            new_relation_col += u[k,i]
+        end
+        add_new_relation!!(relations,aut,new_relation_row)
+        add_new_relation!!(relations,aut,new_relation_col)
+
+    end
+
+
+    return Vector{elem_type(A)}(relations),aut, u, A
+end
+
+#=
+gns, automat = getQuantumPermutationGroup(3)
+
+isInIdeal(gns,gns,automat)
+=#
+
+
+
+function addMatroidRelations( 
+    aut::AhoCorasickAutomaton,
+    u::Matrix,
+    relations::Vector{FreeAssAlgElem{T}} = [],
+    relationsToAdd::Vector{FreeAssAlgElem{T}} = []) where T
+
+    tmpfileString = "./MatroidRelationCompution_" * string(getpid())
+
+    #Get the first Quarter of relations_indices
+    quarter = div(length(relationsToAdd),4)
+    div(3,4)
+    if quarter == 0
+        quarter = length(relationsToAdd)
+    end
+    addNow = relationsToAdd[1:quarter]
+    addLater = relationsToAdd[quarter+1:end]
+
+    for rel in addNow
+        add_new_relation!!(relations, aut, rel)
+    end
+    if addLater == []
+        return aut, u,  relations
+    else
+        save(tmpfileString * ".rels", (relations,addLater,u))
+        saveAhoCorasick(tmpfileString*".aho",aut)
+
+        println("Last save with $(string(length(addLater))) relations left")
+
+        newrelations, newrelationsToAdd, newU = load(tmpfileString * ".rels")
+        newaut = loadAhoCorasick(tmpfileString*".aho") 
+        
+        aut, u, relations = addMatroidRelations(newaut,newU,newrelations,newrelationsToAdd)
+    end
+    return aut, u,  relations
+end
+
+function resumeComputation(path::String)
+    relations, relationsToAdd, u = load(path * ".rels")
+    aut = loadAhoCorasick(path * ".aho")
+    addMatroidRelations(aut,u,relations,relationsToAdd)
+    return
+end
+    
+
+
+#=
+relsToAdd, gens, automat, u, A = getMatroidRelations(uniform_matroid(3,4))
+
+tmp = vcat(gens,relsToAdd)
+gb = AbstractAlgebra.groebner_basis(tmp)
+isCommutativeThird(gb) #true
+
+addMatroidRelations(automat,u, gens,relsToAdd)
+
+isInIdeal(gens,gens,automat)
+
+x =  isCommutative(gens,automat) # false
+isCommutativeSecondVersion(gens,3) #true 
+check_commutativity(u,gens,automat) # false
+
+
+=#
+
+
+
+
+
+
+
+
+function getMatroidRelations(
+    M::MultiSetMatroid,
+    structure::Symbol=:bases)
+    
+    relation_indices = getRelations(M,structure)
+    gns, automat, u, A = getQuantumPermutationGroup(length(M.classic))
+
+    relation_transformed = Vector{elem_type(A)}()
+    for relation in relation_indices
+        temp = one(A)
+        for gen in relation
+            temp = temp * u[gen[1], gen[2]]
+        end
+        push!(relation_transformed,temp)
+    end
+
+
+    return relation_transformed, gns, automat, u, A
+
+end
+
+getMatroidRelations(M::Matroid,structure::Symbol=:bases)= getMatroidRelations(MultiSetMatroid(M),structure)
+
+#=
+relsToAdd, gns, automat, u, A = getMatroidRelations(fano_matroid())
+
+
+tmp = vcat(gns,relsToAdd)
+gb = AbstractAlgebra.groebner_basis(tmp)
+isCommutativeThird(gb)
+
+addMatroidRelations(automat,u, gns,relsToAdd)
+
+isInIdeal(gns,gns,automat)
+
+x =  isCommutative(gns,automat) # false
+isCommutativeSecondVersion(gns,3) #true 
+check_commutativity(u,gns,automat) # false
+
+
+=#
+
+
+
+#=
+GC.enable_logging(true)
+
+uni = uniform_matroid(2,3)
+muni = MultiSetMatroid(uni)
+x = getRelations(muni,:bases)
+
+typeof(x[1][1])
+
+
+
+
+
+Alg, _ ,gns, auts = getIdeal(uni,:bases);
+isInIdeal(gns,gns,auts)
+
+
+
+=#
 
 
 #=

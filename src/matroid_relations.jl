@@ -2,14 +2,12 @@
 using Oscar
 import AbstractAlgebra.Generic: FreeAssociativeAlgebra, FreeAssAlgElem, AhoCorasickAutomaton, insert_keyword!, normal_form
 
-function add_new_relation!!(relations::Vector{AbstractAlgebra.Generic.FreeAssAlgElem{T}}, aut::AhoCorasickAutomaton, new_relation::FreeAssAlgElem{T}, relation_count=0::Int) where T
+
+function add_new_relation!!(relations::Vector{AbstractAlgebra.Generic.FreeAssAlgElem{T}}, aut::AhoCorasickAutomaton, new_relation::FreeAssAlgElem{T}) where T
     normalized = normal_form(new_relation, relations, aut)
     if !iszero(normalized)
         push!(relations, normalized)
         insert_keyword!(aut, normalized.exps[1], length(relations))
-    end
-    if relation_count % 100 == 0
-#        interreduce!(relations)
     end
 end
 #Type richtig machen Vector{Tupe{Int,Int}}
@@ -74,12 +72,14 @@ function matroid_relations(relation_indices::Vector{Any}, n::Int)
         end
         push!(relation_transformed,temp)
     end
+    
     #interreduce!(relation_transformed)
 
     i = 1
     for relation in relation_transformed
         i+=1
-        if i % 5000 == 0
+        if i % 1000 == 0
+            GC.gc()
             percent = round(100*i/m,digits=2)
             println("i = $i, percent = $percent %")
         end
@@ -92,7 +92,7 @@ function matroid_relations(relation_indices::Vector{Any}, n::Int)
     return A, u, relations, aut
     
 end
-function check_commutativity(u::Matrix{AbstractAlgebra.Generic.FreeAssAlgElem{Rational{BigInt}}}, gb::Vector{AbstractAlgebra.Generic.FreeAssAlgElem{Rational{BigInt}}}, aut::AhoCorasickAutomaton)
+function check_commutativity(u::Matrix{AbstractAlgebra.Generic.FreeAssAlgElem{QQFieldElem}}, gb::Vector{AbstractAlgebra.Generic.FreeAssAlgElem{QQFieldElem}}, aut::AhoCorasickAutomaton)
         for i in 1:size(u)[1]
                 for j in 1:size(u)[2]
                         for k in 1:size(u)[1]
@@ -108,7 +108,7 @@ function check_commutativity(u::Matrix{AbstractAlgebra.Generic.FreeAssAlgElem{Ra
 
 end
 
-function check_commutativity(u::Matrix{AbstractAlgebra.Generic.FreeAssAlgElem{Rational{BigInt}}}, gb::Vector{AbstractAlgebra.Generic.FreeAssAlgElem{Rational{BigInt}}})
+function check_commutativity(u::Matrix{AbstractAlgebra.Generic.FreeAssAlgElem{QQFieldElem}}, gb::Vector{AbstractAlgebra.Generic.FreeAssAlgElem{QQFieldElem}})
         for i in 1:size(u)[1]
                 for j in 1:size(u)[2]
                         for k in 1:size(u)[1]

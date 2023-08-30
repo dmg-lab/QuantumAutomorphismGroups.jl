@@ -21,7 +21,7 @@ Alg = parent(gens[1])
     
 
 
-Alg, _, gns, auts = getIdeal(uniform_matroid(2,3))
+Alg, _, gns, auts = getIdeal(uniform_matroid(3,4));
 
 isInIdeal(gns,gns,auts)
 
