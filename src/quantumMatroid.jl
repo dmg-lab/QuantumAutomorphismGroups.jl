@@ -135,14 +135,15 @@ function generateSameIdeal(gens1::Vector{FreeAssAlgElem{T}},gens2::Vector{FreeAs
     return true
 end
 
-
-function isCommutative(Alg,gens,aut)
+    
+function isCommutative(gens,aut)
+    Alg = parent(gens[1])
     n = ngens(Alg)
     for i in 1:n-1, j in i+1:n
         #print statement every 10%
 
         tst = Alg[i]*Alg[j] - Alg[j]*Alg[i]
-        if isInIdeal(tst,gens,aut)
+        if !isInIdeal(tst,gens,aut)
             println("The Ideal is not commutative") 
             return tst 
         end

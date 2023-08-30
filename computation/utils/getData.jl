@@ -1,4 +1,3 @@
-Pkg.activate("../../")
 
 using Oscar
 

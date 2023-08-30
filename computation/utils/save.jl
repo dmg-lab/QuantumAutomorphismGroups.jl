@@ -24,18 +24,40 @@ function toDict(v::Vector{NamedTuple})
 end
 
 
+function strToAho(str::String)
+    x = JSON.parse(str)
+    newGoto = Vector{Dict{Int,Int}}()
+    for d in  x["goto"]
+        newdct = Dict{Int,Int}() 
+        for (k,v) in d
+            newdct[parse(Int,k)] = v
+        end
+        push!(newGoto,newdct)
+    end
+    newFail = Vector{Int}(x["fail"])
+    x["output"]
+    auts.output
+    newOtp = Vector{Tuple{Int,Vector{Int}}}()
+    for ele in x["output"]
+        push!(newOtp,(ele[1],Vector{Int}(ele[2])))
+    end
+    return  AhoCorasickAutomaton(newGoto,newFail,newOtp)
+end
 
-
-function saveAhoCorasick(path::String,Aho::AhoCorasickAutomaton)
-   gt = toNamedTuple(Aho.goto)   
-   save(path,(gt,Aho.fail,Aho.output))
+function saveAhoCorasick(path::String,aho::AhoCorasickAutomaton)
+    str = JSON.json(aho)
+    open(path, "w") do file
+        write(file, str);
+    end;
+    return
 end
 
 function loadAhoCorasick(path::String)
-    res = load(path)
-    l = toDict(collect(res[1]))
-    return AhoCorasickAutomaton(l, res[2], res[3])
+    str = read(path,String)
+    return strToAho(str)
 end
+
+
 
 function saveDict(path::String, dct::Dict)
     tmp = (; (Symbol(k) => v for (k,v) in dct)...)

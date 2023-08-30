@@ -44,7 +44,7 @@ end
 #Temporary computation, include what should be computated
 if !haskey(info, "Aut_" * String(structure)) 
     #Compute
-    include("./getData.jl");
+    include("./utils/getData.jl");
     #Saving 
     info["Aut_" * String(structure)] = (gens, dur);
     println("Saving Infos")
@@ -56,8 +56,6 @@ else
     println("Already computed")
 end
     
-
-
 
 
 
