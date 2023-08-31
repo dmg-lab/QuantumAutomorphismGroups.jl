@@ -27,7 +27,7 @@ end
 function getRelations_rank(M::MultiSetMatroid)
     matroid = M.classic
     n = length(matroid)
-
+    grdSet = matroid_groundset(matroid)
     b =  [[] for _ in 1:n]
     nb =  [[] for _ in 1:n]
     rels= [[] for _ in 1:n]
@@ -70,6 +70,7 @@ function getRelations(M::MultiSetMatroid,structure::Symbol=:bases)
     sets  = eval(structure)(M)
     sizes = unique(map(x -> length(x), sets))
     for size in sizes 
+        size == 0 && continue
         tempGrdSet = reduce(vcat,[grdSet for i in 1:n])
         powerSet = unique(sort.(powerset(tempGrdSet,size,size)))
 
@@ -120,32 +121,32 @@ end
 
 
 
-function isInIdeal(ele::FreeAssAlgElem{T},gens::Vector{FreeAssAlgElem{T}},aut::AhoCorasickAutomaton) where T
-   nrm = normal_form(ele,gens,aut) 
+function isInIdeal(ele::FreeAssAlgElem{T},gb::Vector{FreeAssAlgElem{T}}) where T
+    nrm = normal_form(ele,gb)
    return iszero(nrm) 
 end
 
-function isInIdeal(gens1::Vector{FreeAssAlgElem{T}},gens2::Vector{FreeAssAlgElem{T}},aut2::AhoCorasickAutomaton) where T
+function isInIdeal(gens1::Vector{FreeAssAlgElem{T}},gens2::Vector{FreeAssAlgElem{T}}) where T
     for ele in gens1 
-        isInIdeal(ele,gens2,aut2) || return false
+        isInIdeal(ele,gens2) || return false
     end
     return true
 end
-function generateSameIdeal(gens1::Vector{FreeAssAlgElem{T}},gens2::Vector{FreeAssAlgElem{T}}, aut1::AhoCorasickAutomaton, aut2::AhoCorasickAutomaton) where T
-    isInIdeal(gens1,gens2,aut2) || return false
-    isInIdeal(gens2,gens1,aut1) || return false
+function generateSameIdeal(gens1::Vector{FreeAssAlgElem{T}}, gens2::Vector{FreeAssAlgElem{T}}) where T
+    isInIdeal(gens1,gens2) || return false
+    isInIdeal(gens2,gens1) || return false
     return true
 end
 
     
-function isCommutative(gens,aut)
-    Alg = parent(gens[1])
+function isCommutative(gb::Vector{FreeAssAlgElem{T}}) where T
+    Alg = parent(gb[1])
     n = ngens(Alg)
     for i in 1:n-1, j in i+1:n
         #print statement every 10%
 
         tst = Alg[i]*Alg[j] - Alg[j]*Alg[i]
-        if !isInIdeal(tst,gens,aut)
+        if !isInIdeal(tst,gb)
             println("The Ideal is not commutative") 
             return tst 
         end
@@ -153,20 +154,6 @@ function isCommutative(gens,aut)
     return true
 end
 
-function isCommutativeThird(gb)
-    Alg = parent(gens[1])
-    n = ngens(Alg)
-    for i in 1:n-1, j in i+1:n
-        #print statement every 10%
-
-        tst = Alg[i]*Alg[j] - Alg[j]*Alg[i]
-        if !iszero(normal_form(tst,gb))
-            println("The Ideal is not commutative") 
-            return tst 
-        end
-    end
-    return true
-end
 
 function isCommutativeSecondVersion(gens,m=3)
     Alg = parent(gens[1])
@@ -174,7 +161,6 @@ function isCommutativeSecondVersion(gens,m=3)
 
     n = ngens(Alg)
     for i in 1:n-1, j in i+1:n
-        #print statement every 10%
 
         tst = Alg[i]*Alg[j] - Alg[j]*Alg[i]
         if !ideal_membership(tst,I,m)
@@ -230,24 +216,16 @@ function getQuantumPermutationGroup(n::Int)
             u[i, j] = g[(i-1)*n + j]
     end
     relations = elem_type(A)[]
-    aut = AhoCorasickAutomaton(Vector{Int}[])
-
-
     #Squared relations
     for i in 1:n, j in 1:n
         new_relation = u[i, j] * u[i, j] - u[i, j]
-        if length(relations) == 0
             push!(relations, new_relation)
-            insert_keyword!(aut, new_relation.exps[1], length(relations))
-        else
-            add_new_relation!!(relations, aut, new_relation)
-        end
             for k in 1:n
                     if k != j
                         new_relation = u[i,j] * u[i, k]
-                        add_new_relation!!(relations, aut, new_relation)
+                        push!(relations, new_relation)
                         new_relation = u[j, i]*u[k, i]
-                        add_new_relation!!(relations, aut, new_relation)
+                        push!(relations, new_relation)
                     end
             end
     end
@@ -260,13 +238,13 @@ function getQuantumPermutationGroup(n::Int)
             new_relation_row += u[i,k]
             new_relation_col += u[k,i]
         end
-        add_new_relation!!(relations,aut,new_relation_row)
-        add_new_relation!!(relations,aut,new_relation_col)
+        push!(relations, new_relation_row)
+        push!(relations, new_relation_col)
 
     end
 
 
-    return Vector{elem_type(A)}(relations),aut, u, A
+    return Vector{elem_type(A)}(relations), u, A
 end
 
 #=
@@ -287,16 +265,20 @@ function addMatroidRelations(
 
     #Get the first Quarter of relations_indices
     quarter = div(length(relationsToAdd),4)
-    div(3,4)
     if quarter == 0
         quarter = length(relationsToAdd)
     end
     addNow = relationsToAdd[1:quarter]
     addLater = relationsToAdd[quarter+1:end]
-
-    for rel in addNow
-        add_new_relation!!(relations, aut, rel)
+    if addNow == []
+        return aut, u,  relations
+    else 
+        for rel in addNow
+            relations, aut = add_new_relation_alt!!(relations, aut, rel)
+        end
     end
+
+
     if addLater == []
         return aut, u,  relations
     else
@@ -322,28 +304,6 @@ end
     
 
 
-#=
-relsToAdd, gens, automat, u, A = getMatroidRelations(uniform_matroid(3,4))
-
-tmp = vcat(gens,relsToAdd)
-gb = AbstractAlgebra.groebner_basis(tmp)
-isCommutativeThird(gb) #true
-
-addMatroidRelations(automat,u, gens,relsToAdd)
-
-isInIdeal(gens,gens,automat)
-
-x =  isCommutative(gens,automat) # false
-isCommutativeSecondVersion(gens,3) #true 
-check_commutativity(u,gens,automat) # false
-
-
-=#
-
-
-
-
-
 
 
 
@@ -352,9 +312,8 @@ function getMatroidRelations(
     structure::Symbol=:bases)
     
     relation_indices = getRelations(M,structure)
-    gns, automat, u, A = getQuantumPermutationGroup(length(M.classic))
+    relation_transformed,  u, A = getQuantumPermutationGroup(length(M.classic))
 
-    relation_transformed = Vector{elem_type(A)}()
     for relation in relation_indices
         temp = one(A)
         for gen in relation
@@ -362,72 +321,104 @@ function getMatroidRelations(
         end
         push!(relation_transformed,temp)
     end
+  
 
-
-    return relation_transformed, gns, automat, u, A
+    return relation_transformed,  u, A
 
 end
 
 getMatroidRelations(M::Matroid,structure::Symbol=:bases)= getMatroidRelations(MultiSetMatroid(M),structure)
 
 #=
-relsToAdd, gns, automat, u, A = getMatroidRelations(fano_matroid())
+relsToAdd, u, A = getMatroidRelations(uniform_matroid(2,3))
+relsToAdd_C, u_C, A_C = getMatroidRelations(uniform_matroid(2,3),:circuits)
 
+gb = AbstractAlgebra.groebner_basis(relsToAdd)
+gb_C = AbstractAlgebra.groebner_basis(relsToAdd_C)
 
-tmp = vcat(gns,relsToAdd)
-gb = AbstractAlgebra.groebner_basis(tmp)
-isCommutativeThird(gb)
+isInIdeal(gb,gb)
+isCommutative(gb) # true
 
-addMatroidRelations(automat,u, gns,relsToAdd)
+isInIdeal(gb_C,gb_C)
+isCommutative(gb_C) # true
 
-isInIdeal(gns,gns,automat)
-
-x =  isCommutative(gns,automat) # false
-isCommutativeSecondVersion(gns,3) #true 
-check_commutativity(u,gns,automat) # false
-
-
+generateSameIdeal(gb,gb_C) # true
 =#
-
-
 
 #=
-GC.enable_logging(true)
+relsToAdd, u, A = getMatroidRelations(uniform_matroid(2,4))
+relsToAdd_C, u_C, A_C = getMatroidRelations(uniform_matroid(2,4),:circuits)
+relsToAdd_F, u_F, A_F = getMatroidRelations(uniform_matroid(2,4),:flats)
 
-uni = uniform_matroid(2,3)
-muni = MultiSetMatroid(uni)
-x = getRelations(muni,:bases)
-
-typeof(x[1][1])
-
-
+gb = AbstractAlgebra.groebner_basis(relsToAdd)
+gb_C = AbstractAlgebra.groebner_basis(relsToAdd_C)
+gb_F = AbstractAlgebra.groebner_basis(relsToAdd_F)
 
 
+isInIdeal(gb,gb)
+isCommutative(gb) # true
 
-Alg, _ ,gns, auts = getIdeal(uni,:bases);
-isInIdeal(gns,gns,auts)
+isInIdeal(gb_C,gb_C)
+isCommutative(gb_C) # true
 
-
-
+generateSameIdeal(gb,gb_C) # true
 =#
+#=
 
+relsToAdd, u, A = getMatroidRelations(uniform_matroid(3,4))
+relsToAdd_C, u_C, A_C = getMatroidRelations(uniform_matroid(3,4),:circuits)
+relsToAdd_F, u_F, A_F = getMatroidRelations(uniform_matroid(3,4),:flats)
+
+isCommutativeSecondVersion(relsToAdd,3) #true
+isCommutativeSecondVersion(relsToAdd_C,3) #true
+isCommutativeSecondVersion(relsToAdd_F,3) #true
+=#
+function isCommutative(M::Matroid,structure::Symbol=:bases)
+    relsToAdd, u, A = getMatroidRelations(M,structure)
+    gb = AbstractAlgebra.groebner_basis(relsToAdd)
+    return isCommutative(gb)
+end
+
+function isCommutative_alt(M::Matroid,structure::Symbol=:bases,n::Int=3)
+    relsToAdd, u, A = getMatroidRelations(M,structure)
+    return isCommutativeSecondVersion(relsToAdd,n)
+end
+
+function getNameAndCommutative(M::Matroid)
+    name =   String(M.pm_matroid.REVLEX_BASIS_ENCODING)
+    aut_b = isCommutative(M,:bases)
+    aut_c = isCommutative(M,:circuits)
+    return name, aut_b, aut_c
+end
+
+
+function getNameAndCommutative_alt(M::Matroid)
+    name =   String(M.pm_matroid.REVLEX_BASIS_ENCODING)
+    aut_b = isCommutative_alt(M,:bases)
+    aut_c = isCommutative_alt(M,:circuits)
+    return name, aut_b,  aut_c
+end
+
+getNameAndCommutative_alt(uniform_matroid(2,4))
 
 #=
-fan = fano_matroid()
-nfan = non_fano_matroid()
+db = Polymake.Polydb.get_db()
+collection = db["Matroids.Small"]
 
-Alg,Ideal_F,gens_F,aut_F = getIdeal(fan,:bases);
-_, Ideal_NF, gens_NF, aut_NF = getIdeal(nfan,:bases);
+cursor=Polymake.Polydb.find(collection, Dict("RANK" => 3,"SIMPLE"=>false,"N_ELEMENTS"=>7))
+Droids=Matroid.(cursor)
 
-res = isCommutative(Alg,gens_F,aut_F)
-res = isCommutative(Alg,gens_NF,aut_NF)
+getNameAndCommutative_alt(Droids[1])
+String(Droids[1].pm_matroid.REVLEX_BASIS_ENCODING)
+isCommutative_alt(Droids[1],:bases)
 
+map(getNameAndCommutative_alt,Droids)
 
-isInIdeal(gens_NF,gens_F,aut_F)
-isInIdeal(gens_F,gens_NF,aut_NF)
+relsToAdd, gens, automat, u, A = getMatroidRelations(Droids[23])
+
+isCommutativeSecondVersion(gens,3) #true 
 
 =#
-
 
 
 

@@ -1,7 +1,6 @@
-#!/usr/bin/julia
 using Oscar
 import AbstractAlgebra.Generic: FreeAssociativeAlgebra, FreeAssAlgElem, AhoCorasickAutomaton, insert_keyword!, normal_form
-
+import AbstractAlgebra.Generic: get_obstructions, s_polynomial, add_obstructions!, remove_redundancies!, normal_form_weak
 
 function add_new_relation!!(relations::Vector{AbstractAlgebra.Generic.FreeAssAlgElem{T}}, aut::AhoCorasickAutomaton, new_relation::FreeAssAlgElem{T}) where T
     normalized = normal_form(new_relation, relations, aut)
@@ -9,9 +8,18 @@ function add_new_relation!!(relations::Vector{AbstractAlgebra.Generic.FreeAssAlg
         push!(relations, normalized)
         insert_keyword!(aut, normalized.exps[1], length(relations))
     end
+
 end
+
+
+
+function add_new_relation_alt!!(relations::Vector{AbstractAlgebra.Generic.FreeAssAlgElem{T}}, aut::AhoCorasickAutomaton, new_relation::FreeAssAlgElem{T}) where T
+    return AbstractAlgebra.groebner_basis([relations...,new_relation]), aut
+end
+
+
 #Type richtig machen Vector{Tupe{Int,Int}}
-function matroid_relations(relation_indices::Vector{Any}, n::Int)
+function matroid_relations(relation_indices::Vector{Vector{Tuple{Int,Int}}}, n::Int)
     #Setup
     generator_strings = String[]
     relation_count = 0
@@ -34,16 +42,16 @@ function matroid_relations(relation_indices::Vector{Any}, n::Int)
             push!(relations, new_relation)
             insert_keyword!(aut, new_relation.exps[1], length(relations))
         else
-            add_new_relation!!(relations, aut, new_relation, relation_count)
+            add_new_relation!!(relations, aut, new_relation)
         end
             for k in 1:n
                     if k != j
                         relation_count += 1
                         new_relation = u[i,j] * u[i, k]
-                        add_new_relation!!(relations, aut, new_relation, relation_count)
+                        add_new_relation!!(relations, aut, new_relation)
                         new_relation = u[j, i]*u[k, i]
                         relation_count += 1
-                        add_new_relation!!(relations, aut, new_relation, relation_count)
+                        add_new_relation!!(relations, aut, new_relation)
                     end
             end
     end
@@ -57,9 +65,9 @@ function matroid_relations(relation_indices::Vector{Any}, n::Int)
             new_relation_col += u[k,i]
         end
         relation_count += 1
-        add_new_relation!!(relations,aut,new_relation_row,relation_count)
+        add_new_relation!!(relations,aut,new_relation_row)
         relation_count += 1
-        add_new_relation!!(relations,aut,new_relation_col,relation_count)
+        add_new_relation!!(relations,aut,new_relation_col)
     end
 
     #relations from the matroid
@@ -84,7 +92,7 @@ function matroid_relations(relation_indices::Vector{Any}, n::Int)
             println("i = $i, percent = $percent %")
         end
         relation_count += 1
-        add_new_relation!!(relations, aut, relation, relation_count)
+        add_new_relation!!(relations, aut, relation)
     end
 
 
