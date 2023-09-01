@@ -38,6 +38,19 @@ function Base.contains(V::Vector,v::Vector)
     return contains(S,s)
 end
 
+
+function getFreePercentageOfMemory()
+    free_mem = Sys.free_memory() / 2^20
+    total_mem = Sys.total_memory() / 2^20
+    return free_mem/total_mem
+end
+
+function memoryCritical()
+    return getFreePercentageOfMemory() < 0.15
+end
+
+
+
 function deleteContaining!(V::Vector,verbose::Bool=false)
      
     isempty(V) && return V

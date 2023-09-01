@@ -13,12 +13,10 @@ end
 
 
 
-function add_new_relation_alt!!(relations::Vector{AbstractAlgebra.Generic.FreeAssAlgElem{T}}, aut::AhoCorasickAutomaton, new_relation::FreeAssAlgElem{T}) where T
-    return AbstractAlgebra.groebner_basis([relations...,new_relation]), aut
-end
 
 
 #Type richtig machen Vector{Tupe{Int,Int}}
+#vj
 function matroid_relations(relation_indices::Vector{Vector{Tuple{Int,Int}}}, n::Int)
     #Setup
     generator_strings = String[]
