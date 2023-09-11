@@ -1,5 +1,6 @@
 using Oscar
-
+using Combinatorics
+import AbstractAlgebra: interreduce!
 
 struct MultiSetMatroid
     classic::Oscar.Matroid
@@ -71,10 +72,12 @@ closure(M,[1,2,3,3,3,3])
 
 
 function getRelations(M::MultiSetMatroid,structure::Symbol=:bases)
+    structure == :rank && return getRelations_rank(M)
+
     matroid = M.classic
     n = length(matroid)
     grdSet = matroid_groundset(matroid)
-
+    
     b =  [[] for _ in 1:n]
     nb =  [[] for _ in 1:n]
     rels= [[] for _ in 1:n]
@@ -142,16 +145,13 @@ function getRelations_rank(M::MultiSetMatroid)
 
     sts = powerset(matroid_groundset(matroid))   
     sts_by_rank = partition_by(x->rank(M,Vector{Int}(x)),sts)
-    sizes = unique(map(x -> length(x), sts))
     for size in 1:n
         tempGrdSet = reduce(vcat,[grdSet for i in 1:n])
         powerSet = unique(sort.(powerset(tempGrdSet,size,size)))
-        println(powerSet)
         prt = partition_by(x->rank(M,x),powerSet)
-        println(prt)
         for rnk in keys(prt)
             has_rank = prt[rnk]
-            has_not_rank = setdiff(sts,has_rank)
+            has_not_rank = setdiff(powerSet,has_rank)
 
             for set in has_rank
                 append!(b[size],collect(permutations(set)))
@@ -162,9 +162,6 @@ function getRelations_rank(M::MultiSetMatroid)
 
 
         end
-        println("b: ",b[size])
-        println("nb: ",nb[size])
-        println("rels: ",rels[size])
         for set in b[size]
             length(set) == 0 && continue
             for nonset in nb[size]
@@ -184,16 +181,16 @@ function getRelations_rank(M::MultiSetMatroid)
 
     end
 
-    return rels
+    rels = unique.(rels)
+    return Vector{Vector{Tuple{Int,Int}}}(reduce(vcat,rels))
 
 end
 
 getRelations_rank(M::Matroid)=getRelations_rank(MultiSetMatroid(M))
 
+getRelations_rank(uniform_matroid(2,3))
 
-
-
-function getQuantumPermutationGroup(n::Int,interreduce::Bool=false)
+function getQuantumPermutationGroup(n::Int,interreduce::Bool=true)
     generator_strings = String[]
     for i in 1:n, j in 1:n
             push!(generator_strings, "u[$i,$j]")

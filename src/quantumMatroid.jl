@@ -1,11 +1,8 @@
-using Oscar: interreduce
 using Oscar
-using Polymake
 using Combinatorics
 using AbstractAlgebra
-using AbstractAlgebra.Generic
+using AbstractAlgebra.Generic: FreeAssAlgElem
 
-include("./matroid_relations.jl")
 include("./utils.jl")
 include("./multiSetMatroid.jl")
 include("./save.jl")
@@ -13,21 +10,32 @@ include("./save.jl")
 
 
 
-getIdeal(M::Matroid,structure::Symbol=:bases; reduce::Bool=false)= getIdeal(MultiSetMatroid(M),structure,reduce=reduce)
 
 
 
-function isInIdeal(ele::FreeAssAlgElem{T}, gb::Vector{FreeAssAlgElem{T}}, alt::Bool=false, n::Int=3) where T<:FieldElem
-    if alt
-        return ideal_membership(ele,gb,n)
-    end
+
+
+
+
+
+
+function isInIdeal(ele::FreeAssAlgElem{T}, I::Oscar.FreeAssAlgIdeal{FreeAssAlgElem{T}},n::Int=3) where T<:FieldElem
+        return ideal_membership(ele,I,n)
+end
+
+function isInIdeal(ele::FreeAssAlgElem{T}, gb::Vector{FreeAssAlgElem{T}}) where T<:FieldElem
     nrm = normal_form(ele,gb)
     return iszero(nrm) 
 end
 
 function isInIdeal(gens1::Vector{FreeAssAlgElem{T}},gens2::Vector{FreeAssAlgElem{T}}, alt::Bool=false, n::Int=3) where T <:FieldElem
-    for ele in gens1 
-        isInIdeal(ele,gens2,alt,n) || return false
+    if alt
+        I=AbstractAlgebra.ideal(parent(gens2[1]),gens2)
+        foreach(ele->isInIdeal(ele,I,n) || return false, gens1)        
+    else
+        for ele in gens1 
+            isInIdeal(ele,gens2) || return false
+        end
     end
     return true
 end
@@ -39,31 +47,45 @@ end
 
 
 
-function isCommutative(gb::Vector{FreeAssAlgElem{T}}, alt::Bool=false, n::Int=3) where T <: FieldElem
 
-    Alg = parent(gb[1])
-    m = ngens(Alg)
-    
-    for i in 1:m-1, j in i+1:m
-        
-        tst = Alg[i]*Alg[j] - Alg[j]*Alg[i]
-        if !isInIdeal(tst,gb,alt,n)
-            println("The Ideal is not commutative") 
-            return tst 
-        end
+
+
+function isCommutative(I::Union{Oscar.FreeAssAlgIdeal{FreeAssAlgElem{T}},Vector{FreeAssAlgElem{T}}}, all::Bool = true) where T <: FieldElem
+    if typeof(I) == Oscar.FreeAssAlgIdeal{FreeAssAlgElem{T}}
+        Alg = parent(gens(I)[1])
+    else
+        Alg = parent(I[1])
     end
-    return true
+    m = ngens(Alg)
+    size = Int(sqrt(m))
+
+    nCDict = Dict{FreeAssAlgElem,Bool}() # true means is in ideal, false means not in ideal
+    c = true
+
+    for i in 1:m-1, j in i+1:m
+        tst = Alg[i]*Alg[j] - Alg[j]*Alg[i]
+
+        j % size == i % size && continue
+        div(i-1,size) == div(j-1,size) && continue
+
+        if !isInIdeal(tst,I)
+            nCDict[tst] = false
+            all || return false, nCDict
+            c = false
+            continue
+        end
+        nCDict[tst] = true
+    end
+    return c, nCDict
 end
-
-
-
-
 
 
 function add_new_relation(relations::Vector{FreeAssAlgElem{T}}, new_relation::FreeAssAlgElem{T}) where T
     relations = copy(relations)
     push!(relations,new_relation)
-    return AbstractAlgebra.Generic.groebner_basis(relations)
+    gb = AbstractAlgebra.Generic.groebner_basis(relations)
+    println("Added new relation. There are now $(string(length(relations))) relations")
+    return gb
 end
 
 
@@ -91,16 +113,15 @@ function addMatroidRelations(
         return relations
     else
         freemem = round(getFreePercentageOfMemory() * 100,digits=2)
-        if freemem < 40 
+        println(freemem)
+        if freemem < 100 
             println("There is only $(freemem)% of free memory left. Saving to $(tmpfileString * ".gb")")
-
             save(tmpfileString * ".gb", (relations,addLater))
             println("Saved with $(string(length(addNow))) new relations added.\n There are now $(string(length(addLater))) relations left")
             if freemem <10
                 println("Not enough memory to restart the computation. Please restart manually")
                 exit()
             end
-
         end 
         
         relations = addMatroidRelations(addLater,relations)
@@ -110,12 +131,15 @@ function addMatroidRelations(
 end
 
 
+
+
+
 #=
-gns, automat = getQuantumPermutationGroup(3)
+gns , u , A = getMatroidRelations(uniform_matroid(2,3))
 gns
-interreduce!(gns)
 
 gb = addMatroidRelations(gns)
+
 restartComputation("./MatroidRelationComputation")
 
 
@@ -124,8 +148,31 @@ isInIdeal(gns,gns)
 =#
 
 
+function restart()
+    startup = """
+        Base.ACTIVE_PROJECT[]=$(repr(Base.ACTIVE_PROJECT[]))
+        Base.HOME_PROJECT[]=$(repr(Base.HOME_PROJECT[]))
+        cd($(repr(pwd())))
+        """
+    cmd = `$(Base.julia_cmd()) -ie $startup`
+    atexit(()->run(cmd))
+    exit(0)
+end
 
-
+function restart(path::String)
+    startup = """
+        Base.ACTIVE_PROJECT[]=$(repr(Base.ACTIVE_PROJECT[]))
+        Base.HOME_PROJECT[]=$(repr(Base.HOME_PROJECT[]))
+        cd($(repr(pwd())))
+        include($(repr("./quantumMatroid.jl")))
+        println("Restarting Computation of $(path)")
+        relations, relationsToAdd = load("$(path)" * ".gb")
+        addMatroidRelations(relationsToAdd,relations)
+        """
+    cmd = `$(Base.julia_cmd()) -ie $startup`
+    atexit(()->run(cmd))
+    exit(0)
+end
 
 function restartComputation(path::String)
     println("Restarting Computation of $(path)")
@@ -135,7 +182,6 @@ function restartComputation(path::String)
 
 end
     
-
 
 
 
@@ -160,7 +206,7 @@ function getMatroidRelations(
 
 end
 
-getMatroidRelations(M::Matroid,structure::Symbol=:bases)= getMatroidRelations(MultiSetMatroid(M),structure)
+getMatroidRelations(M::Matroid,structure::Symbol=:bases, interreduce::Bool=false)= getMatroidRelations(MultiSetMatroid(M),structure,interreduce)
 
 #=
 relsToAdd, u, A = getMatroidRelations(uniform_matroid(2,3))
@@ -207,34 +253,50 @@ isCommutativeSecondVersion(relsToAdd_C,3) #true
 isCommutativeSecondVersion(relsToAdd_F,3) #true
 =#
 function isCommutative(M::Matroid,structure::Symbol=:bases, alt::Bool=false, n::Int=3)
-    relsToAdd, u, A = getMatroidRelations(M,structure)
+    relsToAdd, _, A = getMatroidRelations(M,structure)
+    if alt
+        I = Oscar.ideal(A,relsToAdd)
+        return isCommutative(I)
+    end
     gb = AbstractAlgebra.groebner_basis(relsToAdd)
     return isCommutative(gb)
 end
 
 
-function getNameAndCommutative(M::Matroid)
+function getInfo(M::Matroid,alt::Bool=false, n::Int=3,save::Bool=false,path::String="./info.json")
     name =   String(M.pm_matroid.REVLEX_BASIS_ENCODING)
-    aut_b = isCommutative(M,:bases)
-    aut_c = isCommutative(M,:circuits)
-    return name, aut_b, aut_c
+    aut_b,_ = isCommutative(M,:bases,alt,n)
+    aut_c,_ = isCommutative(M,:circuits,alt,n)
+    class_aut = automorphism_group(M)
+    isTrans =  is_transitive(class_aut) 
+    isSimple = is_simple(M)
+    if save
+        save(path,(name, Bool(aut_b), Bool(aut_c), isSimple, Oscar.describe(class_aut), isTrans))
+    end
+
+    return name, aut_b, aut_c, isSimple, Oscar.describe(class_aut), isTrans
 end
-
-
 
 
 #=
 db = Polymake.Polydb.get_db()
 collection = db["Matroids.Small"]
 
-cursor=Polymake.Polydb.find(collection, Dict("RANK" => 3,"SIMPLE"=>false,"N_ELEMENTS"=>7))
+cursor=Polymake.Polydb.find(collection, Dict("RANK" => 2,"N_ELEMENTS"=>4))
 Droids=Matroid.(cursor)
 
-getNameAndCommutative_alt(Droids[1])
-String(Droids[1].pm_matroid.REVLEX_BASIS_ENCODING)
-isCommutative_alt(Droids[1],:bases)
 
-map(getNameAndCommutative_alt,Droids)
+
+
+
+
+
+
+getInfo(Droids[1],true)
+isCommutative(Droids[1],:flats,true)
+String(Droids[1].pm_matroid.REVLEX_BASIS_ENCODING)
+
+map(x->isCommutative(x,:rank,true)[1],Droids)
 
 relsToAdd, gens, automat, u, A = getMatroidRelations(Droids[23])
 
@@ -242,7 +304,4 @@ isCommutativeSecondVersion(gens,3) #true
 
 =#
 
-
-gns, automat = getMatroidRelations(MultiSetMatroid(fano_matroid()),:bases)
-gb = addMatroidRelations(gns)
 
