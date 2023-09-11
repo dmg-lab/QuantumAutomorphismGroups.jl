@@ -84,16 +84,16 @@ function add_new_relation(relations::Vector{FreeAssAlgElem{T}}, new_relation::Fr
     relations = copy(relations)
     push!(relations,new_relation)
     gb = AbstractAlgebra.Generic.groebner_basis(relations)
-    println("Added new relation. There are now $(string(length(relations))) relations")
+    println("Added new relation")
     return gb
 end
 
 
 function addMatroidRelations( 
     relationsToAdd::Vector{FreeAssAlgElem{T}} = FreeAssAlgElem{T}[],
-    relations::Vector{FreeAssAlgElem{T}} = FreeAssAlgElem{T}[]) where T
+    relations::Vector{FreeAssAlgElem{T}} = FreeAssAlgElem{T}[];
+    path::String = "./MatroidRelationComputation") where T
 
-    tmpfileString = "./MatroidRelationComputation"
 
     #Get the first Quarter of relations_indices
     quarter = div(length(relationsToAdd),4)
@@ -103,7 +103,7 @@ function addMatroidRelations(
 
     addNow = relationsToAdd[1:quarter]
     addLater = relationsToAdd[quarter+1:end]
-
+    
     for rel in addNow
         relations = add_new_relation(relations, rel)
     end
@@ -113,11 +113,9 @@ function addMatroidRelations(
         return relations
     else
         freemem = round(getFreePercentageOfMemory() * 100,digits=2)
-        println(freemem)
-        if freemem < 100 
-            println("There is only $(freemem)% of free memory left. Saving to $(tmpfileString * ".gb")")
-            save(tmpfileString * ".gb", (relations,addLater))
-            println("Saved with $(string(length(addNow))) new relations added.\n There are now $(string(length(addLater))) relations left")
+        if freemem < 40
+            println("There is only $(freemem)% of free memory left. Saving... ")
+            save(path * ".gb", (relations,addLater))
             if freemem <10
                 println("Not enough memory to restart the computation. Please restart manually")
                 exit()
@@ -126,19 +124,22 @@ function addMatroidRelations(
         
         relations = addMatroidRelations(addLater,relations)
     end
-
+    #delete tmpfile
+    if isfile(path * ".gb")
+        rm(path * ".gb")
+    end
     return relations
 end
 
 
 
 
-
 #=
-gns , u , A = getMatroidRelations(uniform_matroid(2,3))
+gns , u , A = getMatroidRelations(fano_matroid())
 gns
-
+AbstractAlgebra.groebner_basis(gns)
 gb = addMatroidRelations(gns)
+
 
 restartComputation("./MatroidRelationComputation")
 
@@ -208,50 +209,6 @@ end
 
 getMatroidRelations(M::Matroid,structure::Symbol=:bases, interreduce::Bool=false)= getMatroidRelations(MultiSetMatroid(M),structure,interreduce)
 
-#=
-relsToAdd, u, A = getMatroidRelations(uniform_matroid(2,3))
-relsToAdd_C, u_C, A_C = getMatroidRelations(uniform_matroid(2,3),:circuits)
-
-gb = AbstractAlgebra.groebner_basis(relsToAdd)
-gb_C = AbstractAlgebra.groebner_basis(relsToAdd_C)
-
-isInIdeal(gb,gb)
-isCommutative(gb) # true
-
-isInIdeal(gb_C,gb_C)
-isCommutative(gb_C) # true
-
-generateSameIdeal(gb,gb_C) # true
-=#
-
-#=
-relsToAdd, u, A = getMatroidRelations(uniform_matroid(2,4))
-relsToAdd_C, u_C, A_C = getMatroidRelations(uniform_matroid(2,4),:circuits)
-relsToAdd_F, u_F, A_F = getMatroidRelations(uniform_matroid(2,4),:flats)
-
-gb = AbstractAlgebra.groebner_basis(relsToAdd)
-gb_C = AbstractAlgebra.groebner_basis(relsToAdd_C)
-gb_F = AbstractAlgebra.groebner_basis(relsToAdd_F)
-
-
-isInIdeal(gb,gb)
-isCommutative(gb) # true
-
-isInIdeal(gb_C,gb_C)
-isCommutative(gb_C) # true
-
-generateSameIdeal(gb,gb_C) # true
-=#
-#=
-
-relsToAdd, u, A = getMatroidRelations(uniform_matroid(3,4))
-relsToAdd_C, u_C, A_C = getMatroidRelations(uniform_matroid(3,4),:circuits)
-relsToAdd_F, u_F, A_F = getMatroidRelations(uniform_matroid(3,4),:flats)
-
-isCommutativeSecondVersion(relsToAdd,3) #true
-isCommutativeSecondVersion(relsToAdd_C,3) #true
-isCommutativeSecondVersion(relsToAdd_F,3) #true
-=#
 function isCommutative(M::Matroid,structure::Symbol=:bases, alt::Bool=false, n::Int=3)
     relsToAdd, _, A = getMatroidRelations(M,structure)
     if alt

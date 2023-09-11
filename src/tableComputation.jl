@@ -11,22 +11,14 @@ function addAutToDF(df::DataFrame, M::Matroid, structure::Symbol=:bases, alt::Bo
     colname = "Aut_$(uppercase(String(structure)[1]))"
     data = Dict{String,Any}()
     data["Name"] = name
-    #check if a row with this name already exists
-    for i in 1:size(df)[1]
-        if df[i,:Name] == name
-            #add column if it does not exist 
-            filter(x->x==colname, names(df)) == [] ? df[!,Symbol(colname)] = false : nothing
 
+    row = filter(:Name => ==(name),df)
+    size(row)[1] == 0 ? 
+    (data = Dict{String,Any}(); data["Name"] = name) : 
+    data = Dict{String,Any}(map(x->String(x[1])=>x[2],pairs(row[1,:])))
 
-
-
-            if recompute
-                df[i,Symbol(colname)] = isCommutative(M,structure,alt,n)[1]
-                return df
-            else
-                return df
-            end
-        end
+    if !recompute && haskey(data,colname)
+        return df
     end
     data[colname] = isCommutative(M,structure,alt,n)[1]
     append!(df,data,promote=true,cols=:union)
@@ -73,7 +65,16 @@ end
 #=
 df = DataFrame(Name=String[],Simple=Bool[])
 
-addAutToDF(df,uniform_matroid(3,4),:bases)
+addAutToDF(df,uniform_matroid(1,3),:circuits)
+
+
+
+
+
+true ?
+(data = Dict{String,Any}();data["Name"]="test") :
+data = Dict{String,Any}(df[1,:])
+data
 =#
 
 #= Save and Load File

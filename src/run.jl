@@ -1,62 +1,86 @@
-using Oscar
-
 include("./quantumMatroid.jl")
 
 
+function computeGbOfMatroid(M::Matroid,structure::Symbol=:bases)
+    data_dir = "../data/"
+    infoFile = ".info"
+
+    name = getName(M) 
+    path = "r$(rank(M))n$(length(M))/"* name
+    folder, filename = split(path, "/")
+    fullpath = data_dir * path * infoFile
+
+    #Check if folder exists, if not create it
+    isdir(data_dir * folder) || mkdir(data_dir * folder)
 
 
-#Temporary
-M = non_fano_matroid()
-structure = :bases
+    #Check if info exists, if not create it
+    if isfile(fullpath) 
+        info = loadDict(fullpath)
+    else
+        info = Dict{String,Any}(
+        "revlex_basis_encoding" =>String(M.pm_matroid.REVLEX_BASIS_ENCODING),
+        )
+    end
+    if !haskey(info, "Aut_" * String(structure)) 
+        #Compute
+        gns , _ , _ = getMatroidRelations(M,structure)
+        println("Computing $(name)") 
+        gb = addMatroidRelations(gns,path=fullpath)
+        println("Computed")
+        #Saving 
+        info["Aut_" * String(structure)] = (gb);
+        println("Saving Infos")
+        saveDict(fullpath, info)
+        println("Saved")
 
+    else
+        println("Already computed")
+    end
 
-
-data_dir = "../data/"
-infoFile = "stats.info"
-
-M = @isdefined(M) ? M : uniform_matroid(1,2) 
-getName(M)
-
-path = "r$(rank(M))n$(length(M))/"* getName(M)
-
-
-
-folder, filename = split(path, "/")
-fullpath = data_dir * folder * "/" * filename * "/"
-
-#Check if folder exists, if not create it
-isdir(data_dir * folder) || mkdir(data_dir * folder)
-isdir(fullpath) || mkdir(fullpath)
-
-
-#Check if info exists, if not create it
-if isfile(fullpath * infoFile ) 
-    info = loadDict(fullpath * infoFile)
-else
-    info = Dict{String,Any}(
-    "revlex_basis_encoding" =>String(M.pm_matroid.REVLEX_BASIS_ENCODING),
-    )
+    return info
 end
 
+function computeGbOfMatroid(M::Matroid, strcts::Vector{Symbol}=Symbol[:bases,:flats,:circuits,:rank])
+    ans = Dict{String,Any}()
+    for strct in strcts
+        ans = computeGbOfMatroid(M,strct)
+    end
+    return ans
+end
+
+
+
+#=
 
 #Temporary computation, include what should be computated
-if !haskey(info, "Aut_" * String(structure)) 
-    #Compute
+M = uniform_matroid(0,2)
+computeGbOfMatroid(M,Symbol[:bases,:flats,:circuits,:rank])
 
+=#
 
+#= Database computation
+Droids = []
+for n in 1:4, r in 1:n
 
-    #Saving 
-    info["Aut_" * String(structure)] = (gens);
-    println("Saving Infos")
-    saveDict(fullpath * infoFile, info)
-    #Save the ahocorasick automaton
-    println("Saving AhoCorasick")
-    saveAhoCorasick(fullpath*"Aut_"* String(structure) * ".aho", aut)
-else
-    println("Already computed")
+    db = Polymake.Polydb.get_db()
+    collection = db["Matroids.Small"]
+
+    cursor=Polymake.Polydb.find(collection, Dict("RANK" => r,"N_ELEMENTS"=>n))
+    Droids = vcat(Droids,Matroid.(cursor))
+
 end
-    
-uniform_matroid(0,2)
+
+Droids
+strcts = Symbol[:bases,:flats,:circuits,:rank]
+
+for M in Droids
+    computeGbOfMatroid(M,:bases)
+end
+
+
+=#
+
 
 
 
