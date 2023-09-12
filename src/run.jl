@@ -25,14 +25,12 @@ function computeGbOfMatroid(M::Matroid,structure::Symbol=:bases)
     if !haskey(info, "Aut_" * String(structure)) 
         #Compute
         gns , _ , _ = getMatroidRelations(M,structure)
-        println("Computing $(name)") 
-        gb = addMatroidRelations(gns,path=fullpath)
+        println("Computing Aut_$(String(structure)) for  $(name)") 
+        gb = AbstractAlgebra.groebner_basis(gns)
         println("Computed")
         #Saving 
         info["Aut_" * String(structure)] = (gb);
-        println("Saving Infos")
         saveDict(fullpath, info)
-        println("Saved")
 
     else
         println("Already computed")
@@ -57,11 +55,15 @@ end
 M = uniform_matroid(0,2)
 computeGbOfMatroid(M,Symbol[:bases,:flats,:circuits,:rank])
 
+
+info = computeGbOfMatroid(uniform_matroid(2,5),:circuits)
+
+
 =#
 
 #= Database computation
 Droids = []
-for n in 1:4, r in 1:n
+for n in 1:5, r in 1:n
 
     db = Polymake.Polydb.get_db()
     collection = db["Matroids.Small"]
