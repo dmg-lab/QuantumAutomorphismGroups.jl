@@ -262,3 +262,12 @@ isCommutativeSecondVersion(gens,3) #true
 =#
 
 
+
+#gns , _ , _ = getMatroidRelations(fano_matroid())
+#t = typeof(gns)
+#
+#gb = AbstractAlgebra.groebner_basis(gns)
+##gb = addMatroidRelations(gns,t(),"./fano_backup")
+#save("./fano_computation_alt.gb",gb)
+
+

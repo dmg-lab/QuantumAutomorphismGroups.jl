@@ -27,7 +27,6 @@ function computeGbOfMatroid(M::Matroid,structure::Symbol=:bases)
         gns , _ , _ = getMatroidRelations(M,structure)
         println("Computing Aut_$(String(structure)) for  $(name)") 
         gb = AbstractAlgebra.groebner_basis(gns)
-        println("Computed")
         #Saving 
         info["Aut_" * String(structure)] = (gb);
         saveDict(fullpath, info)
@@ -39,7 +38,7 @@ function computeGbOfMatroid(M::Matroid,structure::Symbol=:bases)
     return info
 end
 
-function computeGbOfMatroid(M::Matroid, strcts::Vector{Symbol}=Symbol[:bases,:flats,:circuits,:rank])
+function computeGbOfMatroid(M::Matroid, strcts::Vector{Symbol})
     ans = Dict{String,Any}()
     for strct in strcts
         ans = computeGbOfMatroid(M,strct)
@@ -56,32 +55,37 @@ M = uniform_matroid(0,2)
 computeGbOfMatroid(M,Symbol[:bases,:flats,:circuits,:rank])
 
 
-info = computeGbOfMatroid(uniform_matroid(2,5),:circuits)
-
+info = computeGbOfMatroid(uniform_matroid(2,5),:bases)
 
 =#
 
-#= Database computation
-Droids = []
+##= Database computation
+
+
+global Droids = []
 for n in 1:5, r in 1:n
 
     db = Polymake.Polydb.get_db()
     collection = db["Matroids.Small"]
 
     cursor=Polymake.Polydb.find(collection, Dict("RANK" => r,"N_ELEMENTS"=>n))
-    Droids = vcat(Droids,Matroid.(cursor))
+    append!(Droids,Matroid.(cursor))
 
 end
 
-Droids
-strcts = Symbol[:bases,:flats,:circuits,:rank]
+strcts = Symbol[:bases,:circuits]
 
 for M in Droids
-    computeGbOfMatroid(M,:bases)
+    computeGbOfMatroid(M,strcts)
 end
 
+info = computeGbOfMatroid(Droids[10])
+I = info["Aut_bases"]
+isCommutative(I)
+I
 
-=#
+
+##=
 
 
 
