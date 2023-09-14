@@ -101,9 +101,8 @@ function getName(M::Matroid)
 end  
 
 popfirst!(s::String) = s[2:end]
-split("r2n3","n")
 
-function nameToRevlex(S::String)
+function nameToRevlex(S::String, r::Int, n::Int)
     s = splitString(S, 2)
     for i in 1:length(s)
         bin_str = toBin(s[i])
@@ -112,23 +111,32 @@ function nameToRevlex(S::String)
         end 
         s[i] = bin_str
     end
-
+    if (length(s)-1)*8 + length(s[end]) < binomial(n,r)
+        s[end] = "0"^(binomial(n,r) - ((length(s)-1)*8 + length(s[end])))*s[end]
+    end
 
     sBin = map(x->replace(x, "1"=>"*"), s)
     return reduce(*, sBin)
 end    
 
+
 function nameToMatroid(S::String)
     sep = split(S,"_")
-    RandN = parse.(Int,split(sep[1][2:end],"n"))
-    revl = nameToRevlex(String(sep[2]))
-    matroid = matroid_from_revlex_basis_encoding(revl,RandN[1],RandN[2])
+    (r,n) = parse.(Int,split(sep[1][2:end],"n"))
+
+
+    revl = nameToRevlex(String(sep[2]),r,n)
+    matroid = matroid_from_revlex_basis_encoding(revl,r,n)
     return matroid
 end    
 
 #=
 M = fano_matroid() 
 N = nameToMatroid(getName(M))
+N.pm_matroid.REVLEX_BASIS_ENCODING == M.pm_matroid.REVLEX_BASIS_ENCODING
+
+H = nameToMatroid("r1n2_1")
+H.pm_matroid.REVLEX_BASIS_ENCODING
 
 M.pm_matroid.REVLEX_BASIS_ENCODING == N.pm_matroid.REVLEX_BASIS_ENCODING
 rank(M) == rank(N)

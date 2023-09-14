@@ -2,7 +2,7 @@
 
 julia_version = "1.9.3"
 manifest_format = "2.0"
-project_hash = "67eec4a51daf72a5aa95d775d09b70d469c87126"
+project_hash = "d2405703dac47931d92cf674b23626f1d0f0d157"
 
 [[deps.ASL_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -11,9 +11,10 @@ uuid = "ae81ac8f-d209-56e5-92de-9978fef736f9"
 version = "0.1.3+0"
 
 [[deps.AbstractAlgebra]]
-deps = ["GroupsCore", "InteractiveUtils", "LinearAlgebra", "MacroTools", "Preferences", "Random", "RandomExtensions", "SparseArrays", "Test"]
-git-tree-sha1 = "2a26dfd1b93bf885c790ee10b34eec674c0eaf91"
-repo-rev = "js/nc_groebner_optimization_stable"
+deps = ["DataStructures", "GroupsCore", "InteractiveUtils", "LinearAlgebra", "MacroTools", "Preferences", "Random", "RandomExtensions", "SparseArrays", "Test"]
+git-tree-sha1 = "6ca93d753b86e63afaa43c47a80042dd784147b6"
+pinned = true
+repo-rev = "5e55c87"
 repo-url = "https://github.com/julien-schanz/AbstractAlgebra.jl.git"
 uuid = "c3fe647b-3220-5bb0-a1ea-a7954cac585d"
 version = "0.31.0"
@@ -467,6 +468,7 @@ version = "1.6.2"
 [[deps.Oscar]]
 deps = ["AbstractAlgebra", "AlgebraicSolving", "DocStringExtensions", "GAP", "Hecke", "JSON", "LazyArtifacts", "Nemo", "Pkg", "Polymake", "Preferences", "Random", "RandomExtensions", "RecipesBase", "Singular", "TOPCOM_jll", "UUIDs", "cohomCalg_jll"]
 git-tree-sha1 = "42fef2a9602879f8938e770c13a388198ce3e320"
+pinned = true
 repo-rev = "master"
 repo-url = "https://github.com/oscar-system/Oscar.jl.git"
 uuid = "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"

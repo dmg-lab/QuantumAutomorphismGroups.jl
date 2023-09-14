@@ -59,7 +59,7 @@ info = computeGbOfMatroid(uniform_matroid(2,5),:bases)
 
 =#
 
-##= Database computation
+#= Database computation
 
 
 global Droids = []
@@ -85,10 +85,15 @@ isCommutative(I)
 I
 
 
-##=
+=#
 
 
 
+db = Polymake.Polydb.get_db()
+collection = db["Matroids.Small"]
+
+cursor=Polymake.Polydb.find(collection, Dict("RANK" => 4,"N_ELEMENTS"=>5))
+append!(Droids,Matroid.(cursor))
 
 
 
