@@ -147,15 +147,49 @@ function loadAll()
 end
 
 
+
+
 #= Save and Load File
 
 path = "../data/data_table.csv"
+df = CSV.read(path,DataFrame)
+select(df,[:Name,:length,:rank, :Aut_B,:Aut_R,:Aut_F,:Aut_C,:describe])
+
+
+df[!,"describe"] = Vector{Union{Missing,String}}(missing,size(df)[1])
+
+for row in eachrow(df)
+    name = String(row["Name"])
+    M = nameToMatroid(name)
+    rank(M)<1 && continue 
+    row["describe"] = Oscar.describe(automorphism_group(M))
+end
+select(df,[:Name,:length,:rank,:describe])
+
+
+
+
 CSV.write(path,df)
 
+M = uniform_matroid(0,10)
+rank(M)
 
-df = CSV.read(path,DataFrame)
+rank(M)<1 ? automorphism_group(dual_matroid(M)) : automorphism_group(M)
+
+matroid_from_bases([[]],0)
+
+
+
+
+
+x = automorphism_group(uniform_matroid(2, 2))
+typeof(x)
+symmetric_group(2)== automorphism_group(uniform_matroid(2, 2))
+
+
+
 sort(df,[:length,:rank])
-
+throw(ArgumentError("The Matroid has to be on at least 1 elements"))
 
 names(df)
 newnames = ["Name","length","rank","Aut_B","Aut_R","Aut_F","Aut_C","Aut_B_stored","Aut_R_stored","Aut_F_stored","Aut_C_stored"]
