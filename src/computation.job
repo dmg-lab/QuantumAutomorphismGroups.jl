@@ -1,0 +1,14 @@
+#!/bin/bash --login
+#$ -cwd
+#$ -N matroid_computation
+#$ -j y
+#$ -o matroid_computation.out
+#$ -l h_rt=168:00:00  
+#$ -l mem_free=150G
+#$ -m e
+#$ -M wack@math.tu-berlin.de 
+
+
+export JULIA_NUM_PRECOMPILE_TASKS=1
+unset LD_LIBRARY_PATH 
+JULIA_DEPOT_PATH=$TMP/julia julia-1.9 -e "using Pkg; Pkg.activate(\"../\"); Pkg.instantiate(); include(\"./run.jl\"); "
