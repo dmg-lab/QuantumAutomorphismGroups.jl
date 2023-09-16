@@ -166,7 +166,7 @@ for row in eachrow(df)
 end
 select(df,[:Name,:length,:rank,:describe])
 
-
+df 
 
 
 CSV.write(path,df)

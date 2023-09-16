@@ -1,8 +1,8 @@
 #!/bin/bash --login
 #$ -cwd
-#$ -N bases_circuits
+#$ -N matroid_computation
 #$ -j y
-#$ -o bases_circuits.out
+#$ -o matroid_computation.out
 #$ -l h_rt=168:00:00  
 #$ -l mem_free=150G
 #$ -m e

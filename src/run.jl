@@ -85,7 +85,7 @@ function computeLpGbOfMatroid(M::Matroid, structure::Symbol, n::Int=3)
     end
     if !haskey(info, "Aut_" * String(structure)) 
         #Compute
-
+        println("Computing Aut_$(String(structure)) for  $(name)") 
         gns, U , A = getMatroidRelations(M,structure)
         I = Oscar.ideal(A,gns)
         Oscar.groebner_assure(I,n);
@@ -119,11 +119,11 @@ M = uniform_matroid(3,5)
 computeLpGbOfMatroid(M,:bases)
 =#
 
-#= Database computation
+##= Database computation
 
 
 global Droids = []
-for n in 1:5, r in 1:n
+for n in 1:7, r in 1:n
 
     db = Polymake.Polydb.get_db()
     collection = db["Matroids.Small"]
@@ -132,8 +132,23 @@ for n in 1:5, r in 1:n
 
     append!(Droids,Matroid.(cursor))
 
+
+
      
 end
+sort!(Droids,by=x->length(getMatroidRelations(x,:bases)[1]))
+
+
+for M in Droids
+    computeLpGbOfMatroid(M,:bases)
+end
+
+
+#=#
+
+
+#=
+
 
 
 db = Polymake.Polydb.get_db()
