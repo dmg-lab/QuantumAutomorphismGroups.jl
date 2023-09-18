@@ -119,7 +119,7 @@ M = uniform_matroid(3,5)
 computeLpGbOfMatroid(M,:bases)
 =#
 
-##= Database computation
+#= Database computation
 
 
 global Droids = []
@@ -144,7 +144,7 @@ for M in Droids
 end
 
 
-#=#
+=#
 
 
 #=

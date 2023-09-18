@@ -146,7 +146,31 @@ function loadAll()
     return data
 end
 
+dt = loadAll()
+row = String[]
+inclusionMatrix = Vector[]
+for (name,dict) in dt
+    for key in keys(dict)
+        if occursin("Aut",key)
+            (_,structure) = split(key,"_")
+            structure = uppercase(structure[1])
+            push!(row,name * "_" * structure)
+            v = Bool[] 
+            for (name2,dict2) in dt
+                for key2 in keys(dict2)
+                    if occursin("Aut",key2)
+                        #Check if the ideal behind key1 is contained in the ideal behind key2
+                        isInIdeal(dict[key],dict2[key2]) ? push!(v,true) : push!(v,false)
+                    end
+                end
 
+            end
+            push!(inclusionMatrix,v)
+        end
+    end
+end
+
+save("./tst.tst",inclusionMatrix)
 
 
 #= Save and Load File
