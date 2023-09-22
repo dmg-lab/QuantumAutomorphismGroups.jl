@@ -1,7 +1,7 @@
 using Oscar
 using Oscar.JSON
-
-import AbstractAlgebra: Generic.AhoCorasickAutomaton
+using Oscar.AbstractAlgebra
+using Oscar.AbstractAlgebra.Generic
 
 
 function toNamedTuple(v::Vector{Dict{Int,Int}})
@@ -72,6 +72,7 @@ function loadDict(path::String)
     end
     return dct
 end
+
 
 
 
