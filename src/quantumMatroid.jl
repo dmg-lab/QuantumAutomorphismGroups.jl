@@ -1,7 +1,7 @@
 using Oscar
 using Combinatorics
-using AbstractAlgebra
-using AbstractAlgebra.Generic: FreeAssAlgElem
+using Oscar.AbstractAlgebra
+using Oscar.AbstractAlgebra.Generic: FreeAssAlgElem
 
 include("./utils.jl")
 include("./multiSetMatroid.jl")
@@ -27,6 +27,9 @@ function isInIdeal(ele::FreeAssAlgElem{T}, gb::Vector{FreeAssAlgElem{T}}) where 
     nrm = normal_form(ele,gb)
     return iszero(nrm) 
 end
+
+isInIdeal(ele :: FreeAssAlgElem{T}, gb::Vector{AbstractAlgebra.FreeAssAlgElem}) where T<:FieldElem = isInIdeal(ele, Vector{FreeAssAlgElem{QQFieldElem}}(gb))
+
 
 function isInIdeal(gens1::Vector{FreeAssAlgElem{T}},gens2::Vector{FreeAssAlgElem{T}}, alt::Bool=false, n::Int=3) where T <:FieldElem
     if alt
@@ -156,9 +159,14 @@ function restart()
         cd($(repr(pwd())))
         """
     cmd = `$(Base.julia_cmd()) -ie $startup`
-    atexit(()->run(cmd))
+    atexit(()->run(cmd;t=false))
     exit(0)
 end
+
+
+
+
+
 
 function restart(path::String)
     startup = """
@@ -269,5 +277,7 @@ isCommutativeSecondVersion(gens,3) #true
 #gb = AbstractAlgebra.groebner_basis(gns)
 ##gb = addMatroidRelations(gns,t(),"./fano_backup")
 #save("./fano_computation_alt.gb",gb)
+
+
 
 

@@ -1,6 +1,5 @@
 using Oscar
 using Combinatorics
-import AbstractAlgebra: interreduce!
 
 struct MultiSetMatroid
     classic::Oscar.Matroid

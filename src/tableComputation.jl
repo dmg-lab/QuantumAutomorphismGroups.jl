@@ -146,31 +146,25 @@ function loadAll()
     return data
 end
 
-dt = loadAll()
-row = String[]
-inclusionMatrix = Vector[]
-for (name,dict) in dt
-    for key in keys(dict)
-        if occursin("Aut",key)
-            (_,structure) = split(key,"_")
-            structure = uppercase(structure[1])
-            push!(row,name * "_" * structure)
-            v = Bool[] 
-            for (name2,dict2) in dt
-                for key2 in keys(dict2)
-                    if occursin("Aut",key2)
-                        #Check if the ideal behind key1 is contained in the ideal behind key2
-                        isInIdeal(dict[key],dict2[key2]) ? push!(v,true) : push!(v,false)
-                    end
-                end
 
-            end
-            push!(inclusionMatrix,v)
-        end
+
+function toDataFrame(D::Dict{String,Dict{String,Bool}})
+    otp = DataFrame()
+
+    for key in keys(Test)
+        df = DataFrame(Test[key])
+        df[!,:Name] .= key
+        df = select!(df,[:Name,Symbol.(keys(Test[key]))...])
+        append!(otp,df,promote=true,cols=:union)
     end
+    return otp
 end
 
-save("./tst.tst",inclusionMatrix)
+
+
+
+
+
 
 
 #= Save and Load File
@@ -179,46 +173,4 @@ path = "../data/data_table.csv"
 df = CSV.read(path,DataFrame)
 select(df,[:Name,:length,:rank, :Aut_B,:Aut_R,:Aut_F,:Aut_C,:describe])
 
-
-df[!,"describe"] = Vector{Union{Missing,String}}(missing,size(df)[1])
-
-for row in eachrow(df)
-    name = String(row["Name"])
-    M = nameToMatroid(name)
-    rank(M)<1 && continue 
-    row["describe"] = Oscar.describe(automorphism_group(M))
-end
-select(df,[:Name,:length,:rank,:describe])
-
-df 
-
-
-CSV.write(path,df)
-
-M = uniform_matroid(0,10)
-rank(M)
-
-rank(M)<1 ? automorphism_group(dual_matroid(M)) : automorphism_group(M)
-
-matroid_from_bases([[]],0)
-
-
-
-
-
-x = automorphism_group(uniform_matroid(2, 2))
-typeof(x)
-symmetric_group(2)== automorphism_group(uniform_matroid(2, 2))
-
-
-
-sort(df,[:length,:rank])
-throw(ArgumentError("The Matroid has to be on at least 1 elements"))
-
-names(df)
-newnames = ["Name","length","rank","Aut_B","Aut_R","Aut_F","Aut_C","Aut_B_stored","Aut_R_stored","Aut_F_stored","Aut_C_stored"]
-select!(df,newnames)
-
-
 =#
-

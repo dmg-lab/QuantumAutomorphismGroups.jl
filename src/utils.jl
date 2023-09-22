@@ -1,7 +1,6 @@
 using Oscar
 using Polymake
 using Combinatorics
-import AbstractAlgebra.Generic: AhoCorasickAutomaton
 
 
 function matroidIncidence(M::Matroid,t::Symbol=:circuits)
@@ -151,11 +150,11 @@ getName(uniform_matroid(3,9))
 function normal_form_with_rep(
     f::FreeAssAlgElem{T},
     g::Vector{FreeAssAlgElem{T}},
-    aut::AhoCorasickAutomaton,
+    aut::AbstractAlgebra.Generic.AhoCorasickAutomaton,
 ) where {T}
 rep_dict = Dict{Int, FreeAssAlgElem{T}}()
     R = parent(f)
-    rexps = AbstractAlgebra.Generic.Monomial[]
+    rexps = Monomial[]
     rcoeffs = T[]
     while length(f) > 0
         ok, left, right, match_index = AbstractAlgebra.Generic.gb_divides_leftmost(f.exps[1], aut)

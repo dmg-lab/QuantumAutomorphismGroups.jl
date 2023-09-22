@@ -1,6 +1,11 @@
 include("./quantumMatroid.jl")
 
 
+
+
+#=
+computeGbOfMatroid(uniform_matroid(3,4))
+=#
 function computeGbOfMatroid(M::Matroid,structure::Symbol=:bases)
     data_dir = "../data/"
     infoFile = ".info"
@@ -38,6 +43,9 @@ function computeGbOfMatroid(M::Matroid,structure::Symbol=:bases)
     return info
 end
 
+#=
+computeGbOfMatroid(uniform_matroid(1,2),[:bases,:circuits])
+=#
 function computeGbOfMatroid(M::Matroid, strcts::Vector{Symbol})
     ans = Dict{String,Any}()
     for strct in strcts
@@ -61,6 +69,9 @@ function toFreeAssAlgElem(U::Matrix{FreeAssAlgElem{QQFieldElem}}, p::Singular.sl
     return new_p
 end
 
+#=
+computeLpGbOfMatroid(uniform_matroid(3,4),:bases)
+=#
 function computeLpGbOfMatroid(M::Matroid, structure::Symbol, n::Int=3)
 
     data_dir = "../data/"
@@ -107,17 +118,6 @@ end
 
 
 
-#=
-
-
-
-
-
-
-#Temporary computation, include what should be computated
-M = uniform_matroid(3,5)
-computeLpGbOfMatroid(M,:bases)
-=#
 
 #= Database computation
 
@@ -142,73 +142,10 @@ sort!(Droids,by=x->length(getMatroidRelations(x,:bases)[1]))
 for M in Droids
     computeLpGbOfMatroid(M,:bases)
 end
-
-
 =#
 
 
 #=
-
-
-
-db = Polymake.Polydb.get_db()
-collection = db["Matroids.Small"]
-
-cursor=Polymake.Polydb.find(collection, Dict("RANK"=>3, "N_ELEMENTS"=>6))
-Droids = Matroid.(cursor)
-
-sort!(Droids,by=x->length(getMatroidRelations(x,:bases)[1]))
-
-
-
-
-
-strcts = Symbol[:bases,:circuits]
-
-for M in Droids
-    computeLpGbOfMatroid(M,:bases)
-    println("Done with $(getName(M))")
-end
-
-info = computeGbOfMatroid(Droids[10])
-I = info["Aut_bases"]
-isCommutative(I)
-I
-
-computeGbOfMatroid(uniform_matroid(3,4),:circuits)
-Oscar.ideal(A,gns)
-
-M = uniform_matroid(3,4)
-gns, U , A = getMatroidRelations(M,:bases)
-
-
-=#
-
-
-
-
-
-#=
-
-
-collect(Oscar.Singular.exponent_words(gb[23]))
-
-methodswith(typeof(gb[1]))
-
-
-FreeAssAlgElem(gb[1])
-# convert to FreeAssAlgebraElem?
-
-
-I = Oscar.ideal(A,gns);
-ideal_membership(gns[1],I,3)
-
-
-gens(I)
-
-
-
-=#
 
 
 
