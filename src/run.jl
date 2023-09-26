@@ -105,7 +105,7 @@ function computeLpGbOfMatroid(M::Matroid, structure::Symbol, n::Int=3)
         gb =  AbstractAlgebra.groebner_basis(map(x->toFreeAssAlgElem(U,x),s_gb))
 
         #Saving 
-        info["Aut_" * String(structure)] = (gb);
+        info["Aut_" * String(structure)*"_fast"] = (gb);
         saveDict(fullpath, info)
 
     else
