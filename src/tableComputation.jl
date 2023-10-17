@@ -90,10 +90,10 @@ end
 
 
 #=
-loadInfo(uniform_matroid(1,3))
+loadInfo(uniform_matroid(2,4))
+getName(uniform_matroid(2,4))
 
-loadInfo("r1n2_1")
-
+loadInfo("r2n4_3f")
 =#
 
 function loadInfo(name::String)
@@ -166,7 +166,6 @@ end
 
 
 
-
 #= Save and Load File
 
 path = "../data/data_table.csv"
@@ -174,3 +173,35 @@ df = CSV.read(path,DataFrame)
 select(df,[:Name,:length,:rank, :Aut_B,:Aut_R,:Aut_F,:Aut_C,:describe])
 
 =#
+
+
+function updateTexFile(df::DataFrame)
+
+    select!(df,[:Name,:length,:rank, :Aut_B,:Aut_R,:Aut_F,:Aut_C,:describe])
+    sort!(df,[:length,:rank])
+    csv_string = CSV.write(IOBuffer(), df) |> take! |> String
+
+
+    str2=csv_string
+
+
+    str2 = replace(str2, r"$"m => raw" \\ \hline")
+    str2 = replace(str2, r",(?=,)"m => s",?")
+    str2 = replace(str2, r","m => raw" & ")
+    str2 = replace(str2, r"_"m => raw"\_")
+    tst = r"^.*\n|.*$"
+
+    str2 = replace(str2, r".*$"=>"")
+    
+    tex = read("../../matroid_quantum_automorphism.tex", String);
+    re = r"(?<=\\hline)(?:.|\n)*?(?=\\label{Tab:computational-results})"
+
+    tex = replace(tex, re=>raw"\n" *str2* "\n")
+
+    write("../../matroid_quantum_automorphism.tex",tex)
+    return str2
+end
+
+updateTexFile(df)
+
+
