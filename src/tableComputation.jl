@@ -87,7 +87,7 @@ end
 
 
 
-
+ 
 
 #=
 loadInfo(uniform_matroid(1,3))
@@ -160,9 +160,38 @@ function toDataFrame(D::Dict{String,Dict{String,Bool}})
     return otp
 end
 
+#=
+dt = loadAll()
 
+row = String[]
+inclusionDict = Dict{String,Dict{String,Bool}}()
+for (name,dict) in dt
+    for key in keys(dict)
+        if occursin("Aut",key)
+            (_,structure) = split(key,"_")
+            structure = uppercase(structure[1])
+            if !haskey(inclusionDict,key*"Aut_"*structur e)
+                inclusionDict[key*"Aut"*structure] = Dict{String,Bool}()
+            end
+            for (name2,dict2) in dt
+                for key2 in keys(dict2)
+                    if occursin("Aut",key2)
+                        #Check if the ideal behind key1 is contained in the ideal behind key2
+                            inclusionDict[key*"Aut"*structure][key2*"Aut"*structure] = true
+                        else
+                            inclusionDict[key*"Aut"*structure][key2*"Aut"*structure] = false
+                        end
+                    end
+                end
 
+            end
+        end
+    end
+end
 
+df = toDataFrame(inclusionDict)
+CSV.write("../data/inclusion.csv",df)
+=#
 
 
 
@@ -171,6 +200,34 @@ end
 
 path = "../data/data_table.csv"
 df = CSV.read(path,DataFrame)
-select(df,[:Name,:length,:rank, :Aut_B,:Aut_R,:Aut_F,:Aut_C,:describe])
+df = select(df,[:Name,:length,:rank, :Aut_B,:Aut_C,:Aut_B_stored,:Aut_C_stored])
+sort!(df,[:length,:rank])
+CSV.write(path,df)
+
 
 =#
+
+#=
+path = "../data/data_table.csv"
+df = CSV.read(path,DataFrame)
+names(df)
+=#
+
+
+open("./test.tex") do f
+    line = 0
+    while ! eof(f)
+    # read a new / next line for every iteration           
+     s = readline(f)          
+    # regex for if line contains 
+    # "\begins{tabulur}{ | l |}
+     line += 1
+     println("$s")
+  end
+ 
+end
+
+
+
+
+

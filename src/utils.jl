@@ -1,5 +1,4 @@
 using Oscar
-using Polymake
 using Combinatorics
 
 

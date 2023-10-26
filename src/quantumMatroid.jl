@@ -53,8 +53,14 @@ end
 
 
 
-function isCommutative(I::Union{Oscar.FreeAssAlgIdeal{FreeAssAlgElem{T}},Vector{FreeAssAlgElem{T}}}, all::Bool = true) where T <: FieldElem
-    if typeof(I) == Oscar.FreeAssAlgIdeal{FreeAssAlgElem{T}}
+function isCommutative(I::Union{
+    Oscar.FreeAssAlgIdeal{FreeAssAlgElem{T}},
+    Vector{FreeAssAlgElem{T}},
+    Vector{AbstractAlgebra.FreeAssAlgElem{T}},
+    Vector{AbstractAlgebra.FreeAssAlgElem}},
+    all::Bool = true) where T <: FieldElem
+
+    if typeof(I) == Oscar.FreeAssAlgIdeal{FreeAssAlgElem{T}} where T <: FieldElem
         Alg = parent(gens(I)[1])
     else
         Alg = parent(I[1])
