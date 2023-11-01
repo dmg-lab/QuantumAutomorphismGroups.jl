@@ -92,8 +92,8 @@ end
 #=
 loadInfo(uniform_matroid(1,3))
 
-loadInfo("r1n2_1")
-
+I = loadInfo("r1n2_1")
+I["Aut_bases"]
 =#
 
 function loadInfo(name::String)
@@ -214,18 +214,6 @@ names(df)
 =#
 
 
-open("./test.tex") do f
-    line = 0
-    while ! eof(f)
-    # read a new / next line for every iteration           
-     s = readline(f)          
-    # regex for if line contains 
-    # "\begins{tabulur}{ | l |}
-     line += 1
-     println("$s")
-  end
- 
-end
 
 
 

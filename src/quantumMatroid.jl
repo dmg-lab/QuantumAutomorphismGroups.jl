@@ -1,23 +1,10 @@
 using Oscar
 using Combinatorics
 using Oscar.AbstractAlgebra
-using Oscar.AbstractAlgebra.Generic: FreeAssAlgElem
 
 include("./utils.jl")
 include("./multiSetMatroid.jl")
 include("./save.jl")
-
-
-
-
-
-
-
-
-
-
-
-
 
 function isInIdeal(ele::FreeAssAlgElem{T}, I::Oscar.FreeAssAlgIdeal{FreeAssAlgElem{T}},n::Int=3) where T<:FieldElem
         return ideal_membership(ele,I,n)
@@ -88,6 +75,15 @@ function isCommutative(I::Union{
     return c, nCDict
 end
 
+function isCommutative(M::Matroid,structure::Symbol=:bases, alt::Bool=false, n::Int=3)
+    relsToAdd, _, A = getMatroidRelations(M,structure)
+    if alt
+        I = Oscar.ideal(A,relsToAdd)
+        return isCommutative(I)
+    end
+    gb = AbstractAlgebra.groebner_basis(relsToAdd)
+    return isCommutative(gb)
+end
 
 function add_new_relation(relations::Vector{FreeAssAlgElem{T}}, new_relation::FreeAssAlgElem{T}) where T
     relations = copy(relations)
@@ -98,54 +94,18 @@ function add_new_relation(relations::Vector{FreeAssAlgElem{T}}, new_relation::Fr
 end
 
 
-function addMatroidRelations( 
-    relationsToAdd::Vector{FreeAssAlgElem{T}} = FreeAssAlgElem{T}[],
-    relations::Vector{FreeAssAlgElem{T}} = FreeAssAlgElem{T}[];
-    path::String = "./MatroidRelationComputation") where T
-
-
-    #Get the first Quarter of relations_indices
-    quarter = div(length(relationsToAdd),4)
-    if quarter == 0
-        quarter = length(relationsToAdd)
-    end
-
-    addNow = relationsToAdd[1:quarter]
-    addLater = relationsToAdd[quarter+1:end]
-    
-    for rel in addNow
-        relations = add_new_relation(relations, rel)
-    end
-
-
-    if addLater == []
-        return relations
-    else
-        freemem = round(getFreePercentageOfMemory() * 100,digits=2)
-        if freemem < 40
-            println("There is only $(freemem)% of free memory left. Saving... ")
-            save(path * ".gb", (relations,addLater))
-            if freemem <10
-                println("Not enough memory to restart the computation. Please restart manually")
-                exit()
-            end
-        end 
-        
-        relations = addMatroidRelations(addLater,relations)
-    end
-    #delete tmpfile
-    if isfile(path * ".gb")
-        rm(path * ".gb")
-    end
-    return relations
-end
 
 
 
 
 #=
-gns , u , A = getMatroidRelations(fano_matroid())
+gns , u , A = getMatroidRelations(uniform_matroid(1,2))
+typeof(gns)
+isInIdeal(gns,gns)
+
 gns
+
+
 AbstractAlgebra.groebner_basis(gns)
 gb = addMatroidRelations(gns)
 
@@ -156,50 +116,6 @@ restartComputation("./MatroidRelationComputation")
 gns
 isInIdeal(gns,gns)
 =#
-
-
-function restart()
-    startup = """
-        Base.ACTIVE_PROJECT[]=$(repr(Base.ACTIVE_PROJECT[]))
-        Base.HOME_PROJECT[]=$(repr(Base.HOME_PROJECT[]))
-        cd($(repr(pwd())))
-        """
-    cmd = `$(Base.julia_cmd()) -ie $startup`
-    atexit(()->run(cmd;t=false))
-    exit(0)
-end
-
-
-
-
-
-
-function restart(path::String)
-    startup = """
-        Base.ACTIVE_PROJECT[]=$(repr(Base.ACTIVE_PROJECT[]))
-        Base.HOME_PROJECT[]=$(repr(Base.HOME_PROJECT[]))
-        cd($(repr(pwd())))
-        include($(repr("./quantumMatroid.jl")))
-        println("Restarting Computation of $(path)")
-        relations, relationsToAdd = load("$(path)" * ".gb")
-        addMatroidRelations(relationsToAdd,relations)
-        """
-    cmd = `$(Base.julia_cmd()) -ie $startup`
-    atexit(()->run(cmd))
-    exit(0)
-end
-
-function restartComputation(path::String)
-    println("Restarting Computation of $(path)")
-    relations, relationsToAdd = load(path * ".gb")
-    addMatroidRelations(relationsToAdd,relations)
-    return
-
-end
-    
-
-
-
 
 function getMatroidRelations(
     M::MultiSetMatroid,
@@ -223,15 +139,6 @@ end
 
 getMatroidRelations(M::Matroid,structure::Symbol=:bases, interreduce::Bool=false)= getMatroidRelations(MultiSetMatroid(M),structure,interreduce)
 
-function isCommutative(M::Matroid,structure::Symbol=:bases, alt::Bool=false, n::Int=3)
-    relsToAdd, _, A = getMatroidRelations(M,structure)
-    if alt
-        I = Oscar.ideal(A,relsToAdd)
-        return isCommutative(I)
-    end
-    gb = AbstractAlgebra.groebner_basis(relsToAdd)
-    return isCommutative(gb)
-end
 
 
 function getInfo(M::Matroid,alt::Bool=false, n::Int=3,save::Bool=false,path::String="./info.json")
