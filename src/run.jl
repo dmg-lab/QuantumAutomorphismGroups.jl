@@ -1,4 +1,6 @@
-include("./quantumMatroid.jl")
+
+export computeGbOfMatroid,
+    computeLpGbOfMatroid
 
 
 
@@ -120,7 +122,7 @@ end
 
 
 
-##= Database computation
+#= Database computation
 
 global Droids = []
 for n in 7:7, r in 1:n
@@ -139,7 +141,7 @@ sort!(Droids,by=x->length(getMatroidRelations(x,:bases)[1]))
 for M in Droids
     computeGbOfMatroid(M,:bases)
 end
-#=#
+=#
 
 
 

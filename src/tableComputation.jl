@@ -1,8 +1,12 @@
 using DataFrames
+using ProgressBars
 using CSV
 
-include("quantumMatroid.jl")
-
+export addAutToDF,
+    addToDf,
+    loadInfo,
+    loadAll,
+    toDataFrame
 #=
 
 df = addAutToDF()
@@ -17,8 +21,9 @@ function addAutToDF(recompute::Bool=false)
         df = DataFrame(Name=String[])
     end
     
+    pbar = ProgressBar(total=length(dt)) 
     for (name, dict) in dt
-        
+        update(pbar)
         row = filter(:Name => ==(name),df)
         size(row)[1] == 0 ? 
         (data = Dict{String,Any}(); data["Name"] = name) : 
@@ -32,16 +37,20 @@ function addAutToDF(recompute::Bool=false)
         end
 
 
-        
         for key in keys(dict)
             #if starts with Aut, then add to df
             if occursin("Aut",key)
                 (_,structure) = split(key,"_")
-                if !recompute && haskey(data,"Aut_$(uppercase(structure[1]))")
-                    continue
-                end
-                data["Aut_$(uppercase(structure[1]))"] = isCommutative(dict[key])[1]
                 data["Aut_$(uppercase(structure[1]))_stored"] = true
+
+                if recompute || !haskey(data,"Aut_$(uppercase(structure[1]))")
+                    println("Checking if $name is commutative by algebraic means")
+                    data["Aut_$(uppercase(structure[1]))"] = isCommutative(dict[key])[1]
+                end
+                if recompute || !haskey(data,"Aut_$(uppercase(structure[1]))_extra")
+                    println("Checking if $name is commutative using extra techniques")
+                    data["Aut_$(uppercase(structure[1]))_extra"] = isCommutativeExtra(dict[key])[1]
+                end
             end 
         end
         #only appand if this name does not exist yet
@@ -160,42 +169,6 @@ function toDataFrame(D::Dict{String,Dict{String,Bool}})
     return otp
 end
 
-#=
-dt = loadAll()
-
-row = String[]
-inclusionDict = Dict{String,Dict{String,Bool}}()
-for (name,dict) in dt
-    for key in keys(dict)
-        if occursin("Aut",key)
-            (_,structure) = split(key,"_")
-            structure = uppercase(structure[1])
-            if !haskey(inclusionDict,key*"Aut_"*structur e)
-                inclusionDict[key*"Aut"*structure] = Dict{String,Bool}()
-            end
-            for (name2,dict2) in dt
-                for key2 in keys(dict2)
-                    if occursin("Aut",key2)
-                        #Check if the ideal behind key1 is contained in the ideal behind key2
-                            inclusionDict[key*"Aut"*structure][key2*"Aut"*structure] = true
-                        else
-                            inclusionDict[key*"Aut"*structure][key2*"Aut"*structure] = false
-                        end
-                    end
-                end
-
-            end
-        end
-    end
-end
-
-df = toDataFrame(inclusionDict)
-CSV.write("../data/inclusion.csv",df)
-=#
-
-
-
-
 #= Save and Load File
 
 path = "../data/data_table.csv"
@@ -213,7 +186,9 @@ df = CSV.read(path,DataFrame)
 names(df)
 =#
 
+#=
 
+=#
 
 
 

@@ -1,5 +1,10 @@
 using Oscar
-using Combinatorics
+
+export getName,
+    nameToRevlex,
+    nameToMatroid,
+    powerset
+
 
 
 function matroidIncidence(M::Matroid,t::Symbol=:circuits)
@@ -128,6 +133,15 @@ function nameToMatroid(S::String)
     return matroid
 end    
 
+function powerset(v::Vector{Integer}, min::Int =0, max::Int=length(v))
+    ans = Vector{Int}[]
+    for k in min:max
+        push!(ans,Oscar.subsets(v,k)...)
+    end
+    return ans
+end
+
+
 #=
 M = fano_matroid() 
 N = nameToMatroid(getName(M))
@@ -146,29 +160,29 @@ getName(uniform_matroid(3,9))
 
 
 
-function normal_form_with_rep(
-    f::FreeAssAlgElem{T},
-    g::Vector{FreeAssAlgElem{T}},
-    aut::AbstractAlgebra.Generic.AhoCorasickAutomaton,
-) where {T}
-rep_dict = Dict{Int, FreeAssAlgElem{T}}()
-    R = parent(f)
-    rexps = Monomial[]
-    rcoeffs = T[]
-    while length(f) > 0
-        ok, left, right, match_index = AbstractAlgebra.Generic.gb_divides_leftmost(f.exps[1], aut)
-        if ok
-            qi = AbstractAlgebra.divexact_right(f.coeffs[1], g[match_index].coeffs[1])
-            f = AbstractAlgebra.Generic._sub_rest(f, AbstractAlgebra.Generic.mul_term(qi, left, g[match_index], right), 1)
-            rep_dict[match_index] = AbstractAlgebra.Generic.mul_term(qi, left, g[match_index], right)
-        else
-            push!(rcoeffs, f.coeffs[1])
-            push!(rexps, f.exps[1])
-            f = FreeAssAlgElem{T}(R, f.coeffs[2:end], f.exps[2:end], length(f) - 1)
-        end
-    end
-    return rep_dict, FreeAssAlgElem{T}(R, rcoeffs, rexps, length(rcoeffs))
-end
+#function normal_form_with_rep(
+#    f::FreeAssAlgElem{T},
+#    g::Vector{FreeAssAlgElem{T}},
+#    aut::AbstractAlgebra.Generic.AhoCorasickAutomaton,
+#) where {T}
+#rep_dict = Dict{Int, FreeAssAlgElem{T}}()
+#    R = parent(f)
+#    rexps = Monomial[]
+#    rcoeffs = T[]
+#    while length(f) > 0
+#        ok, left, right, match_index = AbstractAlgebra.Generic.gb_divides_leftmost(f.exps[1], aut)
+#        if ok
+#            qi = AbstractAlgebra.divexact_right(f.coeffs[1], g[match_index].coeffs[1])
+#            f = AbstractAlgebra.Generic._sub_rest(f, AbstractAlgebra.Generic.mul_term(qi, left, g[match_index], right), 1)
+#            rep_dict[match_index] = AbstractAlgebra.Generic.mul_term(qi, left, g[match_index], right)
+#        else
+#            push!(rcoeffs, f.coeffs[1])
+#            push!(rexps, f.exps[1])
+#            f = FreeAssAlgElem{T}(R, f.coeffs[2:end], f.exps[2:end], length(f) - 1)
+#        end
+#    end
+#    return rep_dict, FreeAssAlgElem{T}(R, rcoeffs, rexps, length(rcoeffs))
+#end
 
 
 

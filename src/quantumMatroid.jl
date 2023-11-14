@@ -1,24 +1,33 @@
 using Oscar
-using Combinatorics
 using Oscar.AbstractAlgebra
+using Oscar.AbstractAlgebra.Generic
 
 include("./utils.jl")
 include("./multiSetMatroid.jl")
 include("./save.jl")
 
-function isInIdeal(ele::FreeAssAlgElem{T}, I::Oscar.FreeAssAlgIdeal{FreeAssAlgElem{T}},n::Int=3) where T<:FieldElem
+export isInIdeal,
+    generateSameIdeal,
+    isCommutative,
+    isCommutativeExtra,
+    getMatroidRelations,
+    getInfo
+
+
+
+function isInIdeal(ele::FreeAssAlgElem{T}, I::Oscar.FreeAssAlgIdeal{<:FreeAssAlgElem{T}},n::Int=3) where T<:FieldElem
+
         return ideal_membership(ele,I,n)
 end
 
-function isInIdeal(ele::FreeAssAlgElem{T}, gb::Vector{FreeAssAlgElem{T}}) where T<:FieldElem
+function isInIdeal(ele::FreeAssAlgElem{T}, gb::Vector{<:FreeAssAlgElem{T}}) where T<:FieldElem
     nrm = normal_form(ele,gb)
     return iszero(nrm) 
 end
 
-isInIdeal(ele :: FreeAssAlgElem{T}, gb::Vector{AbstractAlgebra.FreeAssAlgElem}) where T<:FieldElem = isInIdeal(ele, Vector{FreeAssAlgElem{QQFieldElem}}(gb))
 
 
-function isInIdeal(gens1::Vector{FreeAssAlgElem{T}},gens2::Vector{FreeAssAlgElem{T}}, alt::Bool=false, n::Int=3) where T <:FieldElem
+function isInIdeal(gens1::Vector{<:FreeAssAlgElem{T}}, gens2::Vector{<:FreeAssAlgElem{T}}, alt::Bool=false, n::Int=3) where T <:FieldElem
     if alt
         I=AbstractAlgebra.ideal(parent(gens2[1]),gens2)
         foreach(ele->isInIdeal(ele,I,n) || return false, gens1)        
@@ -29,29 +38,17 @@ function isInIdeal(gens1::Vector{FreeAssAlgElem{T}},gens2::Vector{FreeAssAlgElem
     end
     return true
 end
-function generateSameIdeal(gens1::Vector{FreeAssAlgElem{T}}, gens2::Vector{FreeAssAlgElem{T}}; alt::Bool=false, n::Int=3) where T <:FieldElem
+
+function generateSameIdeal(gens1::Vector{<:FreeAssAlgElem{T}}, gens2::Vector{<:FreeAssAlgElem{T}}; alt::Bool=false, n::Int=3) where T <:FieldElem
     isInIdeal(gens1, gens2, alt, n) || return false
     isInIdeal(gens2, gens1, alt, n) || return false
     return true
 end
 
 
+function isCommutative(I::Vector{<:FreeAssAlgElem{T}}, all::Bool = true) where T <: FieldElem
 
-
-
-
-function isCommutative(I::Union{
-    Oscar.FreeAssAlgIdeal{FreeAssAlgElem{T}},
-    Vector{FreeAssAlgElem{T}},
-    Vector{AbstractAlgebra.FreeAssAlgElem{T}},
-    Vector{AbstractAlgebra.FreeAssAlgElem}},
-    all::Bool = true) where T <: FieldElem
-
-    if typeof(I) == Oscar.FreeAssAlgIdeal{FreeAssAlgElem{T}} where T <: FieldElem
-        Alg = parent(gens(I)[1])
-    else
-        Alg = parent(I[1])
-    end
+    Alg = parent(I[1])
     m = ngens(Alg)
     size = Int(sqrt(m))
 
@@ -75,7 +72,7 @@ function isCommutative(I::Union{
     return c, nCDict
 end
 
-function isCommutative(M::Matroid,structure::Symbol=:bases, alt::Bool=false, n::Int=3)
+function isCommutative(M::Matroid, structure::Symbol = :bases, alt::Bool = false, n::Int = 3)
     relsToAdd, _, A = getMatroidRelations(M,structure)
     if alt
         I = Oscar.ideal(A,relsToAdd)
@@ -85,37 +82,34 @@ function isCommutative(M::Matroid,structure::Symbol=:bases, alt::Bool=false, n::
     return isCommutative(gb)
 end
 
-function add_new_relation(relations::Vector{FreeAssAlgElem{T}}, new_relation::FreeAssAlgElem{T}) where T
-    relations = copy(relations)
-    push!(relations,new_relation)
-    gb = AbstractAlgebra.Generic.groebner_basis(relations)
-    println("Added new relation")
-    return gb
+function isCommutativeExtra(I::Vector{<:FreeAssAlgElem{T}}, all::Bool = false) where T <: FieldElem
+    Alg = parent(I[1])
+    m = ngens(Alg)
+    size = Int(sqrt(m))
+
+    nCDict = Dict{FreeAssAlgElem,Bool}() # true means is in ideal, false means not in ideal
+    c = true
+
+    for i in 1:m-1, j in i+1:m
+        tst = Alg[i]*Alg[j] - Alg[j]*Alg[i]
+
+        j % size == i % size && continue
+        div(i-1,size) == div(j-1,size) && continue
+
+        if !isInIdeal(tst,I)
+            nCDict[tst] = false
+            tst2 = Alg[i]*Alg[j] - Alg[j]*Alg[i]*Alg[j]
+            if !isInIdeal(tst2,I)
+                nCDict[tst2] = false
+                all || return false, nCDict
+                c = false
+                continue
+            end
+        end
+        nCDict[tst] = true
+    end
+    return c, nCDict
 end
-
-
-
-
-
-
-#=
-gns , u , A = getMatroidRelations(uniform_matroid(1,2))
-typeof(gns)
-isInIdeal(gns,gns)
-
-gns
-
-
-AbstractAlgebra.groebner_basis(gns)
-gb = addMatroidRelations(gns)
-
-
-restartComputation("./MatroidRelationComputation")
-
-
-gns
-isInIdeal(gns,gns)
-=#
 
 function getMatroidRelations(
     M::MultiSetMatroid,
@@ -137,11 +131,9 @@ function getMatroidRelations(
 
 end
 
-getMatroidRelations(M::Matroid,structure::Symbol=:bases, interreduce::Bool=false)= getMatroidRelations(MultiSetMatroid(M),structure,interreduce)
+getMatroidRelations(M::Matroid, structure::Symbol=:bases, interreduce::Bool=false)= getMatroidRelations(MultiSetMatroid(M),structure,interreduce)
 
-
-
-function getInfo(M::Matroid,alt::Bool=false, n::Int=3,save::Bool=false,path::String="./info.json")
+function getInfo(M::Matroid, alt::Bool=false, n::Int=3, save::Bool=false, path::String="./info.json")
     name =   String(M.pm_matroid.REVLEX_BASIS_ENCODING)
     aut_b,_ = isCommutative(M,:bases,alt,n)
     aut_c,_ = isCommutative(M,:circuits,alt,n)
@@ -155,42 +147,13 @@ function getInfo(M::Matroid,alt::Bool=false, n::Int=3,save::Bool=false,path::Str
     return name, aut_b, aut_c, isSimple, Oscar.describe(class_aut), isTrans
 end
 
-
 #=
-db = Polymake.Polydb.get_db()
-collection = db["Matroids.Small"]
+gns , u , A = getMatroidRelations(uniform_matroid(2,4))
+typeof(gns)
+isInIdeal(gns,gns)
+isCommutative(gns)
+isCommutativeExtra(gns)
+getInfo(uniform_matroid(1,2))
 
-cursor=Polymake.Polydb.find(collection, Dict("RANK" => 2,"N_ELEMENTS"=>4))
-Droids=Matroid.(cursor)
-
-
-
-
-
-
-
-
-getInfo(Droids[1],true)
-isCommutative(Droids[1],:flats,true)
-String(Droids[1].pm_matroid.REVLEX_BASIS_ENCODING)
-
-map(x->isCommutative(x,:rank,true)[1],Droids)
-
-relsToAdd, gens, automat, u, A = getMatroidRelations(Droids[23])
-
-isCommutativeSecondVersion(gens,3) #true 
 
 =#
-
-
-
-#gns , _ , _ = getMatroidRelations(fano_matroid())
-#t = typeof(gns)
-#
-#gb = AbstractAlgebra.groebner_basis(gns)
-##gb = addMatroidRelations(gns,t(),"./fano_backup")
-#save("./fano_computation_alt.gb",gb)
-
-
-
-

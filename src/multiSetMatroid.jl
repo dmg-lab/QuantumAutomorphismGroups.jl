@@ -1,5 +1,5 @@
 using Oscar
-using Combinatorics
+#using Combinatorics
 
 struct MultiSetMatroid
     classic::Oscar.Matroid
@@ -86,16 +86,17 @@ function getRelations(M::MultiSetMatroid,structure::Symbol=:bases)
     for size in sizes 
         size == 0 && continue
         tempGrdSet = reduce(vcat,[grdSet for i in 1:n])
+        println("hello there!")
         powerSet = unique(sort.(powerset(tempGrdSet,size,size)))
 
         setsOfSize = filter(x->length(x)==size,sets)
         nonSets = setdiff(powerSet,setsOfSize) 
 
         for set in setsOfSize
-            append!(b[size],collect(permutations(set)))
+            append!(b[size],collect(Oscar.permutations(set)))
         end
         for nonset in nonSets
-            append!(nb[size],collect(permutations(nonset)))
+            append!(nb[size],collect(Oscar.permutations(nonset)))
         end
         for set in b[size]
             for nonset in nb[size]
@@ -153,10 +154,10 @@ function getRelations_rank(M::MultiSetMatroid)
             has_not_rank = setdiff(powerSet,has_rank)
 
             for set in has_rank
-                append!(b[size],collect(permutations(set)))
+                append!(b[size],collect(Oscar.permutations(set)))
             end
             for nonset in has_not_rank
-                append!(nb[size],collect(permutations(nonset)))
+                append!(nb[size],collect(Oscar.permutations(nonset)))
             end
 
 

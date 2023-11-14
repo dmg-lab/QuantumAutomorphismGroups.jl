@@ -3,7 +3,6 @@ using Oscar.JSON
 using Oscar.AbstractAlgebra
 using Oscar.AbstractAlgebra.Generic
 
-
 function toNamedTuple(v::Vector{Dict{Int,Int}})
     res =Vector{NamedTuple}()
     for ds in v 
