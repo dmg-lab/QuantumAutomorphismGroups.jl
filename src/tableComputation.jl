@@ -42,14 +42,15 @@ function addAutToDF(recompute::Bool=false)
             if occursin("Aut",key)
                 (_,structure) = split(key,"_")
                 data["Aut_$(uppercase(structure[1]))_stored"] = true
-
-                if recompute || !haskey(data,"Aut_$(uppercase(structure[1]))")
-                    println("Checking if $name is commutative by algebraic means")
-                    data["Aut_$(uppercase(structure[1]))"] = isCommutative(dict[key])[1]
+                newDataName = "Aut_$(uppercase(structure[1]))"
+                if recompute || !haskey(data, newDataName) || ismissing(data[newDataName])
+                    println("Checking if $name for $structure is commutative by algebraic means")
+                    data[newDataName] = isCommutative(dict[key])[1]
                 end
-                if recompute || !haskey(data,"Aut_$(uppercase(structure[1]))_extra")
-                    println("Checking if $name is commutative using extra techniques")
-                    data["Aut_$(uppercase(structure[1]))_extra"] = isCommutativeExtra(dict[key])[1]
+                newDataName = "Aut_$(uppercase(structure[1]))_extra"
+                if recompute || !haskey(data, newDataName) || ismissing(data[newDataName])
+                    println("Checking if $name for $structure is commutative using extra techniques")
+                    data[newDataName] = isCommutativeExtra(dict[key])[1]
                 end
             end 
         end
@@ -58,7 +59,15 @@ function addAutToDF(recompute::Bool=false)
             append!(df,data,promote=true,cols=:union)
             continue
         end
-        new_line = select!(DataFrame(data),Symbol.(names(df)))
+        new_df = DataFrame(data)
+        if Symbol.(names(df)) !== Symbol.(names(new_df))
+            for name in Symbol.(names(new_df))
+                if !(name in Symbol.(names(df)))
+                    insertcols!(df,length(names(df)),name => missings(typeof(new_df[1,name]),nrow(df)))
+                end
+            end
+        end
+        new_line = select!(new_df,Symbol.(names(df)))
 
         df[df.:Name .== name, :] = new_line
 
