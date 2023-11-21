@@ -120,6 +120,11 @@ end
 
 
 
+R = "0000*******************************"
+M = matroid_from_revlex_basis_encoding(R,3,7)
+N = matroid_from_nonbases(nonbases(M),6)
+computeGbOfMatroid(N,:bases)
+computeGbOfMatroid(M,:bases)
 
 
 #= Database computation

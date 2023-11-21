@@ -86,7 +86,6 @@ function getRelations(M::MultiSetMatroid,structure::Symbol=:bases)
     for size in sizes 
         size == 0 && continue
         tempGrdSet = reduce(vcat,[grdSet for i in 1:n])
-        println("hello there!")
         powerSet = unique(sort.(powerset(tempGrdSet,size,size)))
 
         setsOfSize = filter(x->length(x)==size,sets)
