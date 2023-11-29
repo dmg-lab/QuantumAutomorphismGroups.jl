@@ -120,11 +120,6 @@ end
 
 
 
-R = "0000*******************************"
-M = matroid_from_revlex_basis_encoding(R,3,7)
-N = matroid_from_nonbases(nonbases(M),6)
-computeGbOfMatroid(N,:bases)
-computeGbOfMatroid(M,:bases)
 
 
 #= Database computation
@@ -146,6 +141,18 @@ sort!(Droids,by=x->length(getMatroidRelations(x,:bases)[1]))
 for M in Droids
     computeGbOfMatroid(M,:bases)
 end
+
+
+R = "0000*******************************"
+M = matroid_from_revlex_basis_encoding(R,3,7)
+N = matroid_from_nonbases(nonbases(M),6)
+loadInfo(N)
+
+computeGbOfMatroid(N,:bases)
+
+womputeGbOfMatroid(M,:bases)
+
+
 =#
 
 

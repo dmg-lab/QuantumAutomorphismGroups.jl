@@ -10,8 +10,7 @@ export isInIdeal,
     generateSameIdeal,
     isCommutative,
     isCommutativeExtra,
-    getMatroidRelations,
-    getInfo
+    getMatroidRelations
 
 
 

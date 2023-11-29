@@ -1,51 +1,120 @@
 
-\begin{tabular}{}
-something xxx
-\hline
-more text
-\end{tabular}{}
-some more stuff
-whatever
-\begin{tabular}{}
-more text
-\end{tabular}
-
 \appendix
 \section{Computational results}
 \begin{center}
     \small
-    \begin{tabular}{ | l | r | r | r | r | r |p{2.5cm} |}
-    \hline
-    Name  & $\Aut_{\pB}^+$ &  $\Aut_{\rank}^+$  & $\Aut_{\pF}^+$ & $\Aut_{\pC}^+$ & $\Aut(M)$ & Comments \\ \hline
-     u($r<2$,$n<3$) &  C & C & C & C & ? &All $\Aut_{*}^+$ are the same  \\ \hline
-    u(2,3) &  C & C & C & C &  ? &All $\Aut_{*}^+$ are the same  \\ \hline
-    u(2,4) &  NC &  C & C & C &  ? & r2n4 \\ \hline
-    0***** &  NC &  C & C & C &  ? & r2n4 \\ \hline
-    0****0 &  NC &  C & C & NC & ? & r2n4 \\ \hline
-    00*0** & C &  C & C & C & ? & r2n4  \\ \hline
-    000*** & C &  C & C & C &  ? &r2n4  \\ \hline
-    0000** & C &  C & C & C & ? & r2n4 \\ \hline
-    00000* & NC &  C & C & NC &  ? &r2n4 \\ \hline
-    u(3,4) &  C &  ? & C & C &   ? &All $\Aut_{*}^+$ are the same. Flats and Circuits had to be done with the Letterplace approach. \\ \hline
-     0********* & NC &  ? & ? & C & ? & r2n5, all $n>5$ matroid computation used the Letterplace method \\ \hline
-     0****0**** & NC &  ? & ? & NC &  ? &r2n5 \\ \hline
-     00*0**0*** & NC &  ? & ? & C &  ? &r2n5 \\ \hline
-     000******* & NC &  ? & ? & C & ? & r2n5 \\ \hline
-     000******0 & NC &  ? & ? & NC & ? & r2n5 \\ \hline
-     0000**0*** & NC &  ? & ? & C & ? & r2n5 \\ \hline
-     0000**0**0 & NC &  ? & ? & NC & ? & r2n5 \\ \hline
-     00000*00** & NC &  ? & ? & NC & ? & r2n5 \\ \hline
-     0000... & NC &  ? & ? & NC & ? & r2n5 \\ \hline
-     0000... & C &  ? & ? & C & ? & r2n5 \\ \hline
-     0000...& NC &  ? & ? & NC &  ? &r2n5 \\ \hline
-     00000... & NC &  ? & ? & NC & ? & r2n5 \\ \hline
-     00*0**... & NC &  ? & ? & C & ? & r2n6 \\ \hline
-     00**0**...& C &  ? & ? & ? & ? & r3n6 \\ \hline
-     00**0**...& C &  ? & ? & ? & ? & r3n7 \\ \hline
-    fano &  ? & ? & ? & ? & ? & - \\ \hline
-    non-fano &  ? & ? & ? & ? & ? & - \\ \hline
-    \label{Tab:computational-results}
-    \end{tabular}
+\begin{longtable}{rrrrrrr}
+ \hline  
+  \textbf{Name} & \textbf{length} & \textbf{rank} & \textbf{$\QAut{\pB}{M}$} & \textbf{$\QAut{\pC}{M}$} & \textbf{$\QAut{\pC}{M}$} & \textbf{$\QAut{\pC}{M}$} \\ \hline
+  r2n5\_1f3 & 5 & 2 & false & true & ? & ? \\ \hline
+  r1n2\_1 & 2 & 1 & true & true & true & ? \\ \hline
+  r1n3\_1 & 3 & 1 & true & true & ? & ? \\ \hline
+  r1n5\_1 & 5 & 1 & false & false & ? & ? \\ \hline
+  r1n5\_1f & 5 & 1 & false & false & ? & ? \\ \hline
+  r2n4\_1f & 4 & 2 & false & true & ? & ? \\ \hline
+  r2n4\_1 & 4 & 2 & false & false & ? & ? \\ \hline
+  r1n2\_3 & 2 & 1 & true & true & true & true \\ \hline
+  r1n3\_3 & 3 & 1 & true & true & ? & ? \\ \hline
+  r2n4\_b & 4 & 2 & true & true & ? & ? \\ \hline
+  r2n5\_033 & 5 & 2 & false & false & ? & ? \\ \hline
+  r2n5\_043 & 5 & 2 & false & false & ? & ? \\ \hline
+  r1n4\_f & 4 & 1 & false & false & ? & ? \\ \hline
+  r1n5\_7 & 5 & 1 & false & false & ? & ? \\ \hline
+  r2n5\_0d2 & 5 & 2 & false & false & ? & ? \\ \hline
+  r2n5\_0d3 & 5 & 2 & false & true & ? & ? \\ \hline
+  r1n4\_7 & 4 & 1 & true & true & ? & ? \\ \hline
+  r2n4\_7 & 4 & 2 & true & true & ? & ? \\ \hline
+  r2n5\_003 & 5 & 2 & false & false & ? & ? \\ \hline
+  r2n5\_001 & 5 & 2 & false & false & ? & ? \\ \hline
+  r2n5\_1f2 & 5 & 2 & false & false & ? & ? \\ \hline
+  r2n5\_2d3 & 5 & 2 & false & true & ? & ? \\ \hline
+  r1n5\_3 & 5 & 1 & false & false & ? & ? \\ \hline
+  r0n2\_1 & 2 & 0 & true & true & true & true \\ \hline
+  r2n5\_7f3 & 5 & 2 & false & true & ? & ? \\ \hline
+  r1n5\_f & 5 & 1 & false & false & ? & ? \\ \hline
+  r2n4\_3 & 4 & 2 & true & true & ? & ? \\ \hline
+  r2n5\_013 & 5 & 2 & true & true & ? & ? \\ \hline
+  r2n4\_3f & 4 & 2 & false & true & ? & ? \\ \hline
+  r1n4\_3 & 4 & 1 & false & false & ? & ? \\ \hline
+  r2n4\_1e & 4 & 2 & false & false & ? & ? \\ \hline
+  r2n5\_ff3 & 5 & 2 & false & true & ? & ? \\ \hline
+  r2n5\_7b3 & 5 & 2 & false & false & ? & ? \\ \hline
+  r1n4\_1 & 4 & 1 & true & true & ? & ? \\ \hline
+  r1n3\_7 & 3 & 1 & true & true & ? & ? \\ \hline
+  r3n4\_f & 4 & 3 & true & ? & ? & ? \\ \hline
+  r3n6\_02cb7 & 6 & 3 & true & ? & ? & ? \\ \hline
+  r3n6\_07df3 & 6 & 3 & false & ? & ? & ? \\ \hline
+  r3n6\_0ffff & 6 & 3 & false & ? & ? & ? \\ \hline
+  r3n6\_01c7f & 6 & 3 & true & ? & ? & ? \\ \hline
+  r3n6\_7efdf & 6 & 3 & true & ? & ? & ? \\ \hline
+  r3n6\_079e0 & 6 & 3 & false & ? & ? & ? \\ \hline
+  r3n4\_c & 4 & 3 & true & false & ? & ? \\ \hline
+  r3n6\_0fff7 & 6 & 3 & true & ? & ? & ? \\ \hline
+  r3n6\_00003 & 6 & 3 & false & ? & ? & ? \\ \hline
+  r2n6\_0067 & 6 & 2 & false & ? & ? & ? \\ \hline
+  r2n6\_ff7f & 6 & 2 & false & ? & ? & ? \\ \hline
+  r2n6\_1f5f & 6 & 2 & false & ? & ? & ? \\ \hline
+  r3n6\_7ffff & 6 & 3 & true & ? & ? & ? \\ \hline
+  r3n4\_e & 4 & 3 & true & true & ? & ? \\ \hline
+  r3n6\_07dff & 6 & 3 & false & ? & ? & ? \\ \hline
+  r3n6\_7efdd & 6 & 3 & true & ? & ? & ? \\ \hline
+  r3n6\_00001 & 6 & 3 & false & ? & ? & ? \\ \hline
+  r3n6\_7efff & 6 & 3 & true & ? & ? & ? \\ \hline
+  r3n6\_7fffe & 6 & 3 & true & ? & ? & ? \\ \hline
+  r2n6\_7b7f & 6 & 2 & false & ? & ? & ? \\ \hline
+  r3n6\_001ef & 6 & 3 & false & ? & ? & ? \\ \hline
+  r2n6\_2d6f & 6 & 2 & false & ? & ? & ? \\ \hline
+  r3n6\_003ff & 6 & 3 & false & ? & ? & ? \\ \hline
+  r2n6\_0d4f & 6 & 2 & false & ? & ? & ? \\ \hline
+  r3n6\_0fff0 & 6 & 3 & false & ? & ? & ? \\ \hline
+  r3n6\_379ff & 6 & 3 & true & ? & ? & ? \\ \hline
+  r2n6\_003 & 6 & 2 & false & ? & ? & ? \\ \hline
+  r3n6\_01c7e & 6 & 3 & true & ? & ? & ? \\ \hline
+  r2n6\_0023 & 6 & 2 & false & ? & ? & ? \\ \hline
+  r2n6\_1f7f & 6 & 2 & false & ? & ? & ? \\ \hline
+  r3n6\_0007e & 6 & 3 & false & ? & ? & ? \\ \hline
+  r3n6\_000b7 & 6 & 3 & false & ? & ? & ? \\ \hline
+  r3n6\_079e3 & 6 & 3 & false & ? & ? & ? \\ \hline
+  r2n6\_007 & 6 & 2 & false & ? & ? & ? \\ \hline
+  r2n6\_1f5c & 6 & 2 & false & ? & ? & ? \\ \hline
+  r2n6\_001 & 6 & 2 & false & ? & ? & ? \\ \hline
+  r3n6\_12cb7 & 6 & 3 & true & ? & ? & ? \\ \hline
+  r2n6\_037f & 6 & 2 & false & ? & ? & ? \\ \hline
+  r3n6\_fffff & 6 & 3 & true & ? & ? & ? \\ \hline
+  r1n6\_7 & 6 & 1 & false & ? & ? & ? \\ \hline
+  r2n6\_0467 & 6 & 2 & false & ? & ? & ? \\ \hline
+  r3n6\_00c37 & 6 & 3 & true & ? & ? & ? \\ \hline
+  r1n6\_f & 6 & 1 & false & ? & ? & ? \\ \hline
+  r2n6\_016e & 6 & 2 & false & ? & ? & ? \\ \hline
+  r2n6\_00f & 6 & 2 & false & ? & ? & ? \\ \hline
+  r2n6\_001f & 6 & 2 & false & ? & ? & ? \\ \hline
+  r1n6\_1 & 6 & 1 & false & ? & ? & ? \\ \hline
+  r3n6\_37dff & 6 & 3 & true & ? & ? & ? \\ \hline
+  r1n6\_1f & 6 & 1 & false & ? & ? & ? \\ \hline
+  r3n6\_00036 & 6 & 3 & false & ? & ? & ? \\ \hline
+  r1n6\_3f & 6 & 1 & false & ? & ? & ? \\ \hline
+  r2n6\_0066 & 6 & 2 & false & ? & ? & ? \\ \hline
+  r3n6\_001ff & 6 & 3 & false & ? & ? & ? \\ \hline
+  r2n6\_037e & 6 & 2 & false & ? & ? & ? \\ \hline
+  r2n6\_0d6f & 6 & 2 & false & ? & ? & ? \\ \hline
+  r3n6\_0007f & 6 & 3 & false & ? & ? & ? \\ \hline
+  r2n6\_7b7e & 6 & 2 & false & ? & ? & ? \\ \hline
+  r3n6\_00007 & 6 & 3 & true & ? & ? & ? \\ \hline
+  r3n6\_00037 & 6 & 3 & false & ? & ? & ? \\ \hline
+  r3n6\_02cb3 & 6 & 3 & true & ? & ? & ? \\ \hline
+  r3n5\_ff3 & 5 & 3 & true & ? & ? & ? \\ \hline
+  r1n6\_3 & 6 & 1 & false & ? & ? & ? \\ \hline
+  r3n6\_00413 & 6 & 3 & false & ? & ? & ? \\ \hline
+  r3n6\_079ef & 6 & 3 & false & ? & ? & ? \\ \hline
+  r3n6\_00013 & 6 & 3 & false & ? & ? & ? \\ \hline
+  r3n6\_0000f & 6 & 3 & false & ? & ? & ? \\ \hline
+  r3n6\_07dfd & 6 & 3 & true & ? & ? & ? \\ \hline
+  r2n6\_016f & 6 & 2 & false & ? & ? & ? \\ \hline
+  r3n6\_00c36 & 6 & 3 & true & ? & ? & ? \\ \hline
+  r2n6\_7f7f & 6 & 2 & false & ? & ? & ? \\ \hline
+\label{Tab:computational-results} 
+\end{longtable}
+
 \end{center}
 
 

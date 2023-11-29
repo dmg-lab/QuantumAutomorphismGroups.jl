@@ -133,7 +133,7 @@ function nameToMatroid(S::String)
     return matroid
 end    
 
-function powerset(v::Vector{Integer}, min::Int =0, max::Int=length(v))
+function powerset(v::Vector{<:Integer}, min::Int =0, max::Int=length(v))
     ans = Vector{Int}[]
     for k in min:max
         push!(ans,Oscar.subsets(v,k)...)

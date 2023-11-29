@@ -49,7 +49,7 @@ function addAutToDF(recompute::Bool=false)
                 end
                 newDataName = "Aut_$(uppercase(structure[1]))_extra"
                 if recompute || !haskey(data, newDataName) || ismissing(data[newDataName])
-                    println("Checking if $name for $structure is commutative using extra techniques")
+                    println("CheEqwcking if $name for $structure is commutative using extra techniques")
                     data[newDataName] = isCommutativeExtra(dict[key])[1]
                 end
             end 
@@ -118,6 +118,7 @@ function loadInfo(name::String)
 
     data_dir = "../data/"
     infoFile = ".info"
+    table_dir = data_dir*"data_table.csv"
 
     folder = split(name,"_")[1]
     
@@ -130,7 +131,12 @@ function loadInfo(name::String)
 
     #Check if info exists, if not create it
     if isfile(fullpath) 
-         return  loadDict(fullpath)
+        
+        df = CSV.read(table_dir,DataFrame)
+
+        show(filter(:Name=> ==(name),df))
+
+        return  loadDict(fullpath)
     else
         throw(ArgumentError("No data for this matroid exists"))
     end
@@ -179,9 +185,17 @@ function toDataFrame(D::Dict{String,Dict{String,Bool}})
 end
 
 #= Save and Load File
+using Oscar
+using DataFrames
+using ProgressBars
+using CSV
+
 
 path = "../data/data_table.csv"
 df = CSV.read(path,DataFrame)
+
+filter(:Name=> ==("r1n7_1"),df)
+
 df = select(df,[:Name,:length,:rank, :Aut_B,:Aut_C,:Aut_B_stored,:Aut_C_stored])
 sort!(df,[:length,:rank])
 CSV.write(path,df)
