@@ -1,6 +1,20 @@
 using Oscar
-#using Combinatorics
 
+@doc raw"""
+
+    MultiSetMatroid(matroid::Matroid)
+
+Construct a MultiSetMatroid from a Matroid.
+
+# Examples
+```julia
+QuantumAutomorphismGroups.MultiSetMatroid(fano_matroid())
+
+# output
+
+QuantumAutomorphismGroups.MultiSetMatroid(Matroid of rank 3 on 7 elements)
+```
+"""
 struct MultiSetMatroid
     classic::Oscar.Matroid
 end
@@ -55,21 +69,38 @@ end
 function Oscar.closure(M::MultiSetMatroid,set::Vector{Int})
     return closure(M.classic,unique(set))
 end
-    
+
+@doc raw"""
+    flats(M::MultiSetMatroid)
+
+Return the flats of the MultiSetMatroid `M`.
+
+# Examples
+```jldoctest 
+M = MultiSetMatroid(Oscar.fano_matroid())
+flats(M)
+
+```
+"""
 Oscar.flats(M::MultiSetMatroid) = flats(M.classic)
 
 
+@doc raw"""
+    getRelations(M::MultiSetMatroid,structure::Symbol=:bases)
 
-#=
-M = MultiSetMatroid(Oscar.fano_matroid())
-rank(M.classic)
-flats(M.classic)
-flats(M)
-closure(M,[1,2,3,3,3,3])
+Get the indices of the relations that define the quantum automorphism group of a matroid for a given structure.
 
-=#
+# Examples
+```jldoctest
+M = uniform_matroid(3,4)
+idx = QuantumAutomorphismGroups.getRelations(M,:bases)
+length(idx)
 
+# output
 
+1920
+```
+"""
 function getRelations(M::MultiSetMatroid,structure::Symbol=:bases)
     structure == :rank && return getRelations_rank(M)
 
@@ -187,8 +218,21 @@ end
 
 getRelations_rank(M::Matroid)=getRelations_rank(MultiSetMatroid(M))
 
-getRelations_rank(uniform_matroid(2,3))
 
+@doc raw"""
+    getQuantumPermutationGroup(n::Int,interreduce::Bool=true)
+
+Get the relations that define the quantum permutation group on `n` elements. If interreduce is true, it uses the interreduce function from Oscar to reduce the number of generators.
+
+# Examples
+```jldoctest
+rels, u, A = QuantumAutomorphismGroups.getQuantumPermutationGroup(3)
+length(rels)
+# output
+
+20
+```
+"""
 function getQuantumPermutationGroup(n::Int,interreduce::Bool=true)
     generator_strings = String[]
     for i in 1:n, j in 1:n

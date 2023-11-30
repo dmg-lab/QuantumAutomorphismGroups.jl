@@ -3,11 +3,18 @@ export computeGbOfMatroid,
     computeLpGbOfMatroid
 
 
+@doc raw"""
 
+    computeGbOfMatroid(M::Matroid,structure::Symbol=:bases)
 
-#=
+Compute the Groebner basis of the quantum automorphism group of a matroid for a given structure. The result is saved in the data folder. I will load the Gb from the data folder if it has already been computed.
+
+# Examples
+```julia
 computeGbOfMatroid(uniform_matroid(3,4))
-=#
+
+```
+"""
 function computeGbOfMatroid(M::Matroid,structure::Symbol=:bases)
     data_dir = "../data/"
     infoFile = ".info"
