@@ -29,7 +29,7 @@ function getExtraInf(path_to_csv)
     names(df)
     df = select(df,[:Name,:Aut_B,:Aut_C])
 
-    
+     
     # All the extra information
 
     gs = map(x->girth(nameToMatroid(String(x))),df[!,:Name])

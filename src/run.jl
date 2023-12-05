@@ -40,9 +40,10 @@ function computeGbOfMatroid(M::Matroid,structure::Symbol=:bases)
         #Compute
         gns , _ , _ = getMatroidRelations(M,structure)
         println("Computing Aut_$(String(structure)) for  $(name)") 
-        gb = AbstractAlgebra.groebner_basis(gns)
+        gb, elapsed = @timed AbstractAlgebra.groebner_basis(gns)
         #Saving 
         info["Aut_" * String(structure)] = (gb);
+        info["Aut_" * String(structure)*"_timed"] = elapsed
         saveDict(fullpath, info)
 
     else
@@ -128,39 +129,6 @@ end
 
 
 
-
-#= Database computation
-
-global Droids = []
-for n in 7:7, r in 1:n
-
-    db = Polymake.Polydb.get_db()
-    collection = db["Matroids.Small"]
-
-    cursor=Polymake.Polydb.find(collection, Dict("RANK" => r,"N_ELEMENTS"=>n))
-
-    append!(Droids,Matroid.(cursor))
-end
-
-sort!(Droids,by=x->length(getMatroidRelations(x,:bases)[1]))
-
-
-for M in Droids
-    computeGbOfMatroid(M,:bases)
-end
-
-
-R = "0000*******************************"
-M = matroid_from_revlex_basis_encoding(R,3,7)
-N = matroid_from_nonbases(nonbases(M),6)
-loadInfo(N)
-
-computeGbOfMatroid(N,:bases)
-
-womputeGbOfMatroid(M,:bases)
-
-
-=#
 
 
 

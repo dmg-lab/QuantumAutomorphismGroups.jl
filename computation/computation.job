@@ -1,6 +1,6 @@
 #!/bin/bash --login
 #$ -cwd
-#$ -N n_7_bases
+#$ -N more_bases_auts
 #$ -j y
 #$ -o n_7_bases.out
 #$ -l h_rt=168:00:00  
@@ -11,4 +11,4 @@
 
 export JULIA_NUM_PRECOMPILE_TASKS=1
 unset LD_LIBRARY_PATH 
-JULIA_DEPOT_PATH=$TMP/julia julia-1.9 -e "using Pkg; Pkg.activate(\"../\"); Pkg.instantiate(); include(\"./run.jl\"); "
+JULIA_DEPOT_PATH=$TMP/julia julia-1.9 -e "using Pkg; Pkg.activate(\"../\"); Pkg.instantiate(); include(\"./cluster_job.jl\"); "
