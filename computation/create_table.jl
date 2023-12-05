@@ -31,6 +31,10 @@ function getExtraInf(path_to_csv)
     
     hex = map(x->split(String(x),"_")[2],df[!,:Name])
     insertcols!(df,2, :hex => hex) 
+
+    #sorting helper
+    sh = map(x->1/parse(Int,split(String(x),"_")[2], base=16),df[!,:Name])    
+    insertcols!(df,2, :sorting_helper => sh) 
     # All the extra information
 
     gs = map(x->girth(nameToMatroid(String(x))),df[!,:Name])
@@ -40,7 +44,8 @@ function getExtraInf(path_to_csv)
 
     cf = map(x->length(nonbases(nameToMatroid(String(x)))),df[!,:Name])
     insertcols!(df, :n_nonbases => cf)
-    sort!(df, [:length,:rank,:n_nonbases,:girth,:hex])
+    sort!(df, [:length,:rank,:sorting_helper])
+    select!(df, Not([:sorting_helper]))
     return df
 end
 
