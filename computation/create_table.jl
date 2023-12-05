@@ -1,10 +1,99 @@
 using Oscar 
 
-using QuantumAutomorphismgGroups
+using QuantumAutomorphismGroups
 
 using CSV
 using DataFrames
 using DataFrames.PrettyTables
+
+csv = try ARGS[1] catch _  "../computation/dummy.csv" end
+tex = try ARGS[2] catch _ "../computation/test.tex" end
+
+
+
+function toString(v:: Vector{String})
+    return "[" * join(v, ", ") * "]"
+end
+
+
+function toString(v:: Vector{Vector})
+    return map(x -> reduce(*, string.(x)), v) |> cs -> filter(x-> x!= "", cs) |> toString
+end
+
+function toString(v:: Vector{Vector{Int}})
+    return map(x -> reduce(*, string.(x)), v) |> cs -> filter(x-> x!= "", cs) |> toString
+end
+
+function getExtraInf(path_to_csv)
+    df = CSV.read(csv,DataFrame)
+    names(df)
+    df = select(df,[:Name,:Aut_B,:Aut_C])
+
+    
+    # All the extra information
+
+    gs = map(x->girth(nameToMatroid(String(x))),df[!,:Name])
+    insertcols!(df, 4, :girth => gs)
+    ss = map(x->Oscar.order(automorphism_group(nameToMatroid(String(x)))),df[!,:Name])
+    insertcols!(df, 4, Symbol("ord(Aut)") => ss)
+
+    cf = map(x->length(nonbases(nameToMatroid(String(x)))),df[!,:Name])
+    insertcols!(df, 4, :n_nonbases => cf)
+    return df
+end
+
+
+function getHeader(df::DataFrame)
+
+    headerDict = Dict(
+    :Name => "Name",
+    :Aut_B => latex_cell"$\QAut{\pB}{M}$",
+    :Aut_C => latex_cell"$\QAut{\pC}{M}$",
+    :n_nonbases => latex_cell"n\_nonbases",
+    Symbol("ord(Aut)") => latex_cell"$\ord(\Aut(M))$",
+    :girth => latex_cell"$\girth(M)$",
+    :length => latex_cell"$|E(M)|$",
+    :rank => latex_cell"$r(M)$",
+    :n_loops => latex_cell"n\_loops",
+    :CAut => latex_cell"$\Aut(M)$",
+
+    )
+
+    return map(x->headerDict[Symbol(x)],names(df))
+end
+
+
+
+function toLongtable(df::DataFrame, label::String="Tab:computational-results")
+    header = getHeader(df)
+
+    io = IOBuffer()
+    CSV.write(io,df)
+    str2 = String(take!(io))
+    str2 = DataFrames.pretty_table(io,df,backend = Val(:latex), header=header)
+    str2 = String(take!(io))
+
+    str2 = replace(str2, r"\\hline"m => raw"");
+    str2 = replace(str2, r"tabular"m => raw"longtable");
+
+    str2 = replace(str2, r"\\\\\\\\"m => "\\\\ \\hline");
+
+
+str2 = replace(str2, r"(?:.)*?(?=\\end\{longtable})"m => "\\label{"*label*"} \\\\ \\hline\n")
+    str2 = replace(str2, r"(?<=\\begin\{longtable\})(\{r*\}\n)(?:.|\n)*?"m=>s"\1 \\hline")
+    str2 = replace(str2, r"\\begin\{longtable\}\{r*\}\n"m => "\\begin{longtable}{"*"|l|"*"r|"^(length(header)-1)* "}\n");
+    
+    #delete last \hline
+    str2 = replace(str2, r"\\\\ \\hline\n\\label" => "\n\\label");
+     
+    #Checkmark means it has a non commutative quantum automorphism group
+    str2 = replace(str2, r"false"m => raw"$\times$");
+    str2 = replace(str2, r"true"m => raw"$\checkmark$");
+    str2 = replace(str2, r"missing"m => raw"?");
+    
+    return str2
+end
+
 
 function putDataInLateX(path_to_csv,path_to_tex)
 
@@ -12,27 +101,9 @@ function putDataInLateX(path_to_csv,path_to_tex)
     nams =[:Name,:length,:rank, :Aut_B,:Aut_C]
     df = select(df,nams)
 
-    nams2 = ["Name","length","rank",
-    latex_cell"$\QAut{\pB}{M}$",
-    latex_cell"$\QAut{\pC}{M}$"]
 
 
-    io = IOBuffer()
-    CSV.write(io,df)
-    str2 = String(take!(io))
-    str2 = DataFrames.pretty_table(io,df,backend = Val(:latex), header=nams2)
-    str2 = String(take!(io))
-
-    str2 = replace(str2, r"\\hline"m => raw"");
-    str2 = replace(str2, r"missing"m => raw"?");
-    str2 = replace(str2, r"tabular"m => raw"longtable");
-
-    str2 = replace(str2, r"\\\\\\\\"m => "\\\\ \\hline");
-
-
-    str2 = replace(str2, r"(?:.)*?(?=\\end\{longtable})"m => s"\\label{Tab:computational-results} \n")
-    str2 = replace(str2, r"(?<=\\begin\{longtable\})(\{r*\}\n)(?:.|\n)*?"m=>s"\1 \\hline")
-
+    str2 = toLongtable(df)
 
     str = read(path_to_tex, String);
 
@@ -47,49 +118,44 @@ function putDataInLateX(path_to_csv,path_to_tex)
     return 
 end
 
-csv = try ARGS[1] catch _  "../computation/dummy.csv" end
-tex = try ARGS[2] catch _ "../computation/test.tex" end
-
-
-#csv="../data/data_table.csv"
-#tex="../../matroid_quantum_automorphism.tex"
-
-putDataInLateX(csv,tex)
-
-
-df = CSV.read(csv,DataFrame)
-
-df = select(df,[:Name,:length,:rank])
-df[1,:Name]
-M = nameToMatroid(String(df[1,:Name]))
-length(loops(M))
-girth(M)
-
-
-function toString(v:: Vector{String})
-    return "[" * join(v, ", ") * "]"
-end
-CS(M) = circuits(M) |> cs -> filter(x->length(x)==2, cs) |> cs -> map(x -> "$(x[1])$(x[2])", cs) |> toString
-
-Oscar.describe(automorphism_group(M))
-
-
-function toString(v:: Vector{Vector})
-    return map(x -> reduce(*, string.(x)), v) |> cs -> filter(x-> x!= "", cs) |> toString
+function replaceByLabel(str1::String, label::String, str2::String)
+    longtab(label) = Regex(raw"(?:\\begin\{longtable\})(?:(?!\\begin\{longtable\}).|\n)*?\\label\{"*label*raw"\} \\\\ \\hline\n\\end{longtable}")
+        re = longtab(label)
+        str = replace(str1, re=>str2)
+        return str 
 end
 
-function toString(v:: Vector{Vector{Int}})
-    return map(x -> reduce(*, string.(x)), v) |> cs -> filter(x-> x!= "", cs) |> toString
-end
 
-toString(cyclic_flats(M))
-cf = map(x->toString(cyclic_flats(nameToMatroid(String(x)))),df[!,:Name])
-insertcols!(df, 4, :cyclic_flats => cf)
-cf = map(x->CS(nameToMatroid(String(x))),df[!,:Name])
-insertcols!(df, 4, :Symbol("2-circuits") => cf)
 
-gs = map(x->girth(nameToMatroid(String(x))),df[!,:Name])
-insertcols!(df, 4, :girth => gs)
-ls = map(x->length(loops(nameToMatroid(String(x)))),df[!,:Name])
-insertcols!(df, 4, :n_loops => ls)
+csv="../data/data_table.csv"
+tex="../../matroid_quantum_automorphism.tex"
+
+df = getExtraInf(csv)
+str = read(tex, String);
+
+df_nm=filter(x->!ismissing(x[:Aut_B]) && !ismissing(x[:Aut_C]),df)
+
+#Table in with both Aut_B and Aut_C are false
+df1 = filter(x->x[:Aut_B]==false && x[:Aut_C]==false,df_nm)
+newstr = replaceByLabel(str,"Tab:computational-results-1",toLongtable(df1,"Tab:computational-results-1"))
+
+
+#Table in with both Aut_B and Aut_C are true
+df2 = filter(x->x[:Aut_B]==true && x[:Aut_C]==true,df_nm)
+newstr = replaceByLabel(newstr,"Tab:computational-results-2",toLongtable(df2,"Tab:computational-results-2"))
+
+
+#Table in with Aut_B is true and Aut_C is false
+df3 = filter(x->x[:Aut_B]==true && x[:Aut_C]==false,df_nm)
+newstr = replaceByLabel(newstr,"Tab:computational-results-3",toLongtable(df3,"Tab:computational-results-3"))
+
+#Table in with Aut_B is true and Aut_C is false
+df4 = filter(x->x[:Aut_B]==false && x[:Aut_C]==true,df_nm)
+newstr = replaceByLabel(newstr,"Tab:computational-results-4",toLongtable(df4,"Tab:computational-results-4"))
+
+#Table in with Aut_B is true and Aut_C is missing
+df5 = filter(x->x[:Aut_B]==true && ismissing(x[:Aut_C]),df)
+newstr = replaceByLabel(newstr,"Tab:computational-results-5",toLongtable(df5,"Tab:computational-results-5"))
+
+write(tex,newstr);
 

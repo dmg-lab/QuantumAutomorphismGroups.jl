@@ -114,7 +114,7 @@ I = loadInfo("r1n2_1")
 I["Aut_bases"]
 =#
 
-function loadInfo(name::String)
+function loadInfo(name::String,show::Bool=false)
 
     data_dir = "../data/"
     infoFile = ".info"
@@ -134,7 +134,7 @@ function loadInfo(name::String)
         
         df = CSV.read(table_dir,DataFrame)
 
-        show(filter(:Name=> ==(name),df))
+        show && show(filter(:Name=> ==(name),df))
 
         return  loadDict(fullpath)
     else
