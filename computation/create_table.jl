@@ -10,7 +10,6 @@ csv = try ARGS[1] catch _  "../computation/dummy.csv" end
 tex = try ARGS[2] catch _ "../computation/test.tex" end
 
 
-
 function toString(v:: Vector{String})
     return "[" * join(v, ", ") * "]"
 end
@@ -24,29 +23,32 @@ function toString(v:: Vector{Vector{Int}})
     return map(x -> reduce(*, string.(x)), v) |> cs -> filter(x-> x!= "", cs) |> toString
 end
 
+
 function getExtraInf(path_to_csv)
     df = CSV.read(csv,DataFrame)
     names(df)
-    df = select(df,[:Name,:Aut_B,:Aut_C])
-
-     
+    df = select(df,[:Name,:length,:rank,:Aut_B,:Aut_C])
+    
+    hex = map(x->split(String(x),"_")[2],df[!,:Name])
+    insertcols!(df,2, :hex => hex) 
     # All the extra information
 
     gs = map(x->girth(nameToMatroid(String(x))),df[!,:Name])
-    insertcols!(df, 4, :girth => gs)
+    insertcols!(df,:girth => gs)
     ss = map(x->Oscar.order(automorphism_group(nameToMatroid(String(x)))),df[!,:Name])
-    insertcols!(df, 4, Symbol("ord(Aut)") => ss)
+    insertcols!(df, Symbol("ord(Aut)") => ss)
 
     cf = map(x->length(nonbases(nameToMatroid(String(x)))),df[!,:Name])
-    insertcols!(df, 4, :n_nonbases => cf)
+    insertcols!(df, :n_nonbases => cf)
+    sort!(df, [:length,:rank,:n_nonbases,:girth,:hex])
     return df
 end
-
 
 function getHeader(df::DataFrame)
 
     headerDict = Dict(
     :Name => "Name",
+    :hex => "Name",
     :Aut_B => latex_cell"$\QAut{\pB}{M}$",
     :Aut_C => latex_cell"$\QAut{\pC}{M}$",
     :n_nonbases => latex_cell"n\_nonbases",
@@ -134,27 +136,31 @@ df = getExtraInf(csv)
 str = read(tex, String);
 
 df_nm=filter(x->!ismissing(x[:Aut_B]) && !ismissing(x[:Aut_C]),df)
-
 #Table in with both Aut_B and Aut_C are false
 df1 = filter(x->x[:Aut_B]==false && x[:Aut_C]==false,df_nm)
+df1 = select(df1,[:hex,:length,:rank,:girth,:n_nonbases,Symbol("ord(Aut)")])
 newstr = replaceByLabel(str,"Tab:computational-results-1",toLongtable(df1,"Tab:computational-results-1"))
 
 
 #Table in with both Aut_B and Aut_C are true
 df2 = filter(x->x[:Aut_B]==true && x[:Aut_C]==true,df_nm)
+df2 = select(df2,[:hex,:length,:rank,:girth,:n_nonbases,Symbol("ord(Aut)")])
 newstr = replaceByLabel(newstr,"Tab:computational-results-2",toLongtable(df2,"Tab:computational-results-2"))
 
 
 #Table in with Aut_B is true and Aut_C is false
 df3 = filter(x->x[:Aut_B]==true && x[:Aut_C]==false,df_nm)
+df3 = select(df3,[:hex,:length,:rank,:girth,:n_nonbases,Symbol("ord(Aut)")])
 newstr = replaceByLabel(newstr,"Tab:computational-results-3",toLongtable(df3,"Tab:computational-results-3"))
 
 #Table in with Aut_B is true and Aut_C is false
 df4 = filter(x->x[:Aut_B]==false && x[:Aut_C]==true,df_nm)
+df4 = select(df4,[:hex,:length,:rank,:girth,:n_nonbases,Symbol("ord(Aut)")])
 newstr = replaceByLabel(newstr,"Tab:computational-results-4",toLongtable(df4,"Tab:computational-results-4"))
 
 #Table in with Aut_B is true and Aut_C is missing
 df5 = filter(x->x[:Aut_B]==true && ismissing(x[:Aut_C]),df)
+df5 = select(df5,[:hex,:length,:rank,:girth,:n_nonbases,Symbol("ord(Aut)")])
 newstr = replaceByLabel(newstr,"Tab:computational-results-5",toLongtable(df5,"Tab:computational-results-5"))
 
 write(tex,newstr);
