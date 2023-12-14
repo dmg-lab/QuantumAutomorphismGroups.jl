@@ -1,7 +1,7 @@
 
 export computeGbOfMatroid,
-    computeLpGbOfMatroid
-
+    computeLpGbOfMatroid,
+    getTiming
 
 @doc raw"""
 
@@ -53,6 +53,46 @@ function computeGbOfMatroid(M::Matroid,structure::Symbol=:bases)
     return info
 end
 
+function getTiming(M::Matroid,structure::Symbol=:bases)
+    data_dir = "../data/"
+    infoFile = ".info"
+
+    name = getName(M) 
+    path = "r$(rank(M))n$(length(M))/"* name
+    folder, filename = split(path, "/")
+    fullpath = data_dir * path * infoFile
+
+    #Check if folder exists, if not create it
+    isdir(data_dir * folder) || mkdir(data_dir * folder)
+
+    #Check if info exists, if not compute it
+    if isfile(fullpath) 
+        info = loadDict(fullpath)
+    else
+        info = Dict{String,Any}(
+        "revlex_basis_encoding" =>String(M.pm_matroid.REVLEX_BASIS_ENCODING),
+        )
+    end
+    if !haskey(info, "Aut_" * String(structure)*"_timed") 
+        if !haskey(info, "Aut_" * String(structure)) 
+            info = computeGbOfMatroid(M,structure) 
+            return info
+        else
+            println("Adding timing")
+            #Compute
+            gns , _ , _ = getMatroidRelations(M,structure)
+            println("Computing Aut_$(String(structure)) for  $(name)") 
+            _, elapsed = @timed AbstractAlgebra.groebner_basis(gns)
+            #Saving 
+            info["Aut_" * String(structure)*"_timed"] = elapsed
+            saveDict(fullpath, info)
+        end 
+    else
+        println("Already computed")
+    end
+end
+
+getTiming(Name::String,structure::Symbol=:bases) = getTiming(getMatroid(Name),structure)
 #=
 computeGbOfMatroid(uniform_matroid(1,2),[:bases,:circuits])
 =#
