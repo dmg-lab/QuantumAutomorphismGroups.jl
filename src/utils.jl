@@ -3,7 +3,10 @@ using Oscar
 export getName,
     nameToRevlex,
     nameToMatroid,
-    powerset
+    powerset,
+    custom_deg,
+    altName
+
 
 
 
@@ -105,6 +108,33 @@ end
 
 popfirst!(s::String) = s[2:end]
 
+function altName(M::Matroid)
+    rev = replace(String(M.pm_matroid.REVLEX_BASIS_ENCODING), "*"=>"1")
+    strng = toHex(rev)
+    supposed_length = Int(ceil(binomial(length(M),rank(M)) / 4 ))
+    if supposed_length < length(strng)
+        return strng
+    else
+        hex_str = "0"^(supposed_length-length(strng))*strng
+        return hex_str
+    end
+end
+
+
+#=
+length(M)
+altName(uniform_matroid(1,3))
+
+Int(ceil(binomial(7,3)/4))
+name = "r3n7_00c360dd7"
+M = nameToMatroid(name)
+altName(M)
+M  = nameToMatroid("r2n6_000f")
+rev = replace(String(M.pm_matroid.REVLEX_BASIS_ENCODING), "*"=>"1")
+QuantumAutomorphismGroups.toHex(rev)
+sRev = QuantumAutomorphismGroups.splitString(rev,8)
+getName(M)
+=#
 function nameToRevlex(S::String, r::Int, n::Int)
     s = splitString(S, 2)
     for i in 1:length(s)
@@ -141,6 +171,9 @@ function powerset(v::Vector{<:Integer}, min::Int =0, max::Int=length(v))
     return ans
 end
 
+
+custom_deg(p::FreeAssAlgElem{T}) where T<:FieldElem = maximum([length(x) for x in collect(exponent_words(p))])
+custom_deg(p::Vector{<:FreeAssAlgElem{T}}) where T<:FieldElem = maximum([custom_deg(x) for x in p])
 
 #=
 M = fano_matroid() 

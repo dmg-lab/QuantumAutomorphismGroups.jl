@@ -2,6 +2,7 @@ using DataFrames
 using ProgressBars
 using CSV
 
+
 export addAutToDF,
     addToDf,
     loadInfo,
@@ -10,6 +11,7 @@ export addAutToDF,
 #=
 
 df = addAutToDF()
+
 names(df)
 =#
 function addAutToDF(recompute::Bool=false)
@@ -47,12 +49,21 @@ function addAutToDF(recompute::Bool=false)
                     println("Checking if $name for $structure is commutative by algebraic means")
                     data[newDataName] = isCommutative(dict[key])[1]
                 end
-                newDataName = "Aut_$(uppercase(structure[1]))_extra"
-                if recompute || !haskey(data, newDataName) || ismissing(data[newDataName])
-                    println("CheEqwcking if $name for $structure is commutative using extra techniques")
-                    data[newDataName] = isCommutativeExtra(dict[key])[1]
+                #newDataName = "Aut_$(uppercase(structure[1]))_extra"
+                #if recompute || !haskey(data, newDataName) || ismissing(data[newDataName])
+                #    println("Checking if $name for $structure is commutative using extra techniques")
+                #    data[newDataName] = isCommutativeExtra(dict[key])[1]
+                #end
+                if occursin("timed",key)
+                    newDataName = "Aut_$(uppercase(structure[1]))_timed"
+                    if recompute || !haskey(data, newDataName) || ismissing(data[newDataName])
+                        println("Adding timing for $structure on $name.")
+                        data[newDataName] = dict[key]
+                    end
                 end
+
             end 
+
         end
         #only appand if this name does not exist yet
         if size(row)[1] == 0
