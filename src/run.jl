@@ -92,7 +92,7 @@ function getTiming(M::Matroid,structure::Symbol=:bases)
     end
 end
 
-getTiming(Name::String,structure::Symbol=:bases) = getTiming(getMatroid(Name),structure)
+getTiming(Name::String,structure::Symbol=:bases) = getTiming(nameToMatroid(Name),structure)
 #=
 computeGbOfMatroid(uniform_matroid(1,2),[:bases,:circuits])
 =#
