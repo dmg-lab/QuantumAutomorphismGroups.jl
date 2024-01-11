@@ -161,12 +161,14 @@ end
 loadInfo(M::Matroid) = loadInfo(getName(M))
 
 
+
+
+
 #=
-loadAll()
+loadAll(true)
 =#
-function loadAll()
+function loadAll(prettyprint::Bool=false)
     data_dir = "../data/"
-    infoFile = ".info"
 
     data = Dict{String,Dict{String,Any}}()
     
@@ -174,6 +176,11 @@ function loadAll()
         if isdir(data_dir * folder)
             for file in readdir(data_dir * folder)
                 if isfile(data_dir * folder * "/" * file)
+                    if prettyprint
+                        path = data_dir * folder * "/" * file
+                        cmd = pipeline(`jq . $path `,` sponge $path`)
+                        run(cmd) 
+                    end
                     #cut of the .info
                     fileName = split(file,".")[1]
                     data[fileName] = loadDict(data_dir * folder * "/" * file)
