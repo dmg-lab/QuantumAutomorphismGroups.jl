@@ -5,6 +5,8 @@ export getName,
     nameToMatroid,
     powerset,
     custom_deg,
+    altNameToRevlex,
+    altNameToMatroid,
     altName
 
 
@@ -93,7 +95,7 @@ end
 toHex(s::String) = string(parse(Int, s, base=2), base=16)
 toBin(s::String) = string(parse(Int, s, base=16), base=2)
 
-function getName(M::Matroid)
+function altName(M::Matroid)
     rev = replace(String(M.pm_matroid.REVLEX_BASIS_ENCODING), "*"=>"1")
     sRev = splitString(rev, 8)
     for i in 1:length(sRev)
@@ -108,7 +110,7 @@ end
 
 popfirst!(s::String) = s[2:end]
 
-function altName(M::Matroid)
+function getName(M::Matroid)
     rev = replace(String(M.pm_matroid.REVLEX_BASIS_ENCODING), "*"=>"1")
     strng = toHex(rev)
     supposed_length = Int(ceil(binomial(length(M),rank(M)) / 4 ))
@@ -116,26 +118,48 @@ function altName(M::Matroid)
         return strng
     else
         hex_str = "0"^(supposed_length-length(strng))*strng
-        return hex_str
+        return "r$(rank(M))n$(length(matroid_groundset(M)))"*"_"*hex_str
     end
 end
 
+function nameToRevlex(S::String,r::Int,n::Int)
+    s = toBin(S)
+    if length(s) < binomial(n,r)
+        s = "0"^(binomial(n,r) - length(s))*s
+    end
+    s = replace(s, "1"=>"*")
+    return s
+
+end
 
 #=
 length(M)
 altName(uniform_matroid(1,3))
 
+
+
 Int(ceil(binomial(7,3)/4))
-name = "r3n7_00c360dd7"
+name = "r3n7_00c360dd7" #That is an new name
+oldname = "r2n6_001"
+altNameToMatroid(name)
+getName(altNameToMatroid(name))
+binomial(7,3)/4
+altNameToMatroid(name)
 M = nameToMatroid(name)
-altName(M)
-M  = nameToMatroid("r2n6_000f")
-rev = replace(String(M.pm_matroid.REVLEX_BASIS_ENCODING), "*"=>"1")
-QuantumAutomorphismGroups.toHex(rev)
-sRev = QuantumAutomorphismGroups.splitString(rev,8)
 getName(M)
+getName(fano_matroid())
+bases(M)
+bases(altNameToMatroid(name))
+altName(M)
+s = String(split(altName(M),"_")[2])
+altNameToRevlex(s,3,7)
+bases(altNameToMatroid(altName(M))) == bases(M)
+altNameToMatroid(altName(M)) == M
+
+rev = replace(String(M.pm_matroid.REVLEX_BASIS_ENCODING), "*"=>"1")
 =#
-function nameToRevlex(S::String, r::Int, n::Int)
+
+function altNameToRevlex(S::String, r::Int, n::Int)
     s = splitString(S, 2)
     for i in 1:length(s)
         bin_str = toBin(s[i])
@@ -152,13 +176,20 @@ function nameToRevlex(S::String, r::Int, n::Int)
     return reduce(*, sBin)
 end    
 
-
 function nameToMatroid(S::String)
+    sep = split(S,"_")
+    (r,n) = parse.(Int,split(sep[1][2:end],"n"))
+    revl = nameToRevlex(String(sep[2]),r,n)
+    matroid = matroid_from_revlex_basis_encoding(revl,r,n)
+    return matroid
+end
+
+function altNameToMatroid(S::String)
     sep = split(S,"_")
     (r,n) = parse.(Int,split(sep[1][2:end],"n"))
 
 
-    revl = nameToRevlex(String(sep[2]),r,n)
+    revl = altNameToRevlex(String(sep[2]),r,n)
     matroid = matroid_from_revlex_basis_encoding(revl,r,n)
     return matroid
 end    

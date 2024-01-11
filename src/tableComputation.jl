@@ -7,6 +7,7 @@ export addAutToDF,
     addToDf,
     loadInfo,
     loadAll,
+    loadDf,
     toDataFrame
 #=
 
@@ -114,7 +115,9 @@ function addToDf(df::DataFrame, M::Matroid, dataPoint::Any, colname::String, rec
     return df
 end
 
-
+function loadDf()
+    CSV.read("../data/data_table.csv",DataFrame)
+end
 
  
 
@@ -183,17 +186,6 @@ end
 
 
 
-function toDataFrame(D::Dict{String,Dict{String,Bool}})
-    otp = DataFrame()
-
-    for key in keys(Test)
-        df = DataFrame(Test[key])
-        df[!,:Name] .= key
-        df = select!(df,[:Name,Symbol.(keys(Test[key]))...])
-        append!(otp,df,promote=true,cols=:union)
-    end
-    return otp
-end
 
 #= Save and Load File
 using Oscar
@@ -211,7 +203,7 @@ filter(:Name=> ==("r1n7_1"),df)
 df = select(df,[:Name,:length,:rank, :Aut_B,:Aut_C,:Aut_B_stored,:Aut_C_stored])
 sort!(df,[:length,:rank])
 CSV.write(path,df)
-
+loadInfo("r2n6_0003")
 
 =#
 
@@ -224,8 +216,6 @@ names(df)
 #=
 
 =#
-
-
 
 
 
