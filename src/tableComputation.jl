@@ -204,6 +204,7 @@ using CSV
 
 path = "../data/data_table.csv"
 df = CSV.read(path,DataFrame)
+select!(df,:Aut_B_timed)
 
 filter(:Name=> ==("r1n7_1"),df)
 
