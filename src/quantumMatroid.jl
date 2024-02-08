@@ -43,7 +43,7 @@ Uses non-commutative groebner_basis from AbstractAlgebra to check if an element 
 ```jldoctest
 Ax,(x1,x2,x3) = FreeAssociativeAlgebra(QQ, ["x1","x2","x3"])
 V = [x1^2+x2,x2^2+x3,x3]
-isInIdeal(x1^2+x2,v)
+isInIdeal(x1^2+x2,V)
 
 # output
 

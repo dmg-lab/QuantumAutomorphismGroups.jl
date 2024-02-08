@@ -122,7 +122,7 @@ end
 #=
 computeLpGbOfMatroid(uniform_matroid(3,4),:bases)
 =#
-function computeLpGbOfMatroid(M::Matroid, structure::Symbol, n::Int=3)
+function computeLpGbOfMatroid(M::Matroid, structure::Symbol)
 
     data_dir = "../data/"
     infoFile = ".info"
@@ -144,18 +144,21 @@ function computeLpGbOfMatroid(M::Matroid, structure::Symbol, n::Int=3)
         "revlex_basis_encoding" =>String(M.pm_matroid.REVLEX_BASIS_ENCODING),
         )
     end
-    if !haskey(info, "Aut_" * String(structure) * "_fast") 
+    if !haskey(info, "Aut_" * String(structure) * "_lp") 
         #Compute
         println("Computing Aut_$(String(structure)) for  $(name)") 
-        gns, U , A = getMatroidRelations(M,structure)
-        I = Oscar.ideal(A,gns)
-        Oscar.groebner_assure(I,n);
-        Oscar.singular_assure(I.gb,n)
-        s_gb = gens(I.gb.S)
-        gb =  AbstractAlgebra.groebner_basis(map(x->toFreeAssAlgElem(U,x),s_gb))
+        gns, _ , _ = getMatroidRelations(M,structure)
+        len = length(M)^2 + 2
+
+
+        gb, prot, elapsed = lp_groebner_basis(gns, len, prot=true)
+        length(gb)
+
 
         #Saving 
-        info["Aut_" * String(structure)*"_fast"] = (gb);
+        info["Aut_" * String(structure)*"_lp"] = (gb);
+        info["Aut_" * String(structure)*"_lp_timed"] = elapsed;
+        info["Aut_" * String(structure)*"_lp_prot"] = UInt8.(collect(prot))
         saveDict(fullpath, info)
 
     else
