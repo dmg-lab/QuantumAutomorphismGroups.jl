@@ -24,7 +24,7 @@ function toDict(v::Vector{NamedTuple})
     return res
 end
 
-
+#=
 function strToAho(str::String)
     x = JSON.parse(str)
     newGoto = Vector{Dict{Int,Int}}()
@@ -40,22 +40,22 @@ function strToAho(str::String)
     for ele in x["output"]
         push!(newOtp,(ele[1],Vector{Int}(ele[2])))
     end
-    return  AhoCorasickAutomaton(newGoto,newFail,newOtp)
+    return  AbstractAlgebra.Generic.AhoCorasickAutomaton(newGoto,newFail,newOtp)
 end
 
-function saveAhoCorasick(path::String,aho::AhoCorasickAutomaton)
+function saveAhoCorasick(path::String,aho::AbstractAlgebra.Generic.AhoCorasickAutomaton)
     str = JSON.json(aho)
     open(path, "w") do file
         write(file, str);
     end;
     return
 end
-
 function loadAhoCorasick(path::String)
     str = read(path,String)
     return strToAho(str)
 end
 
+=#
 
 
 function saveDict(path::String, dct::Dict)

@@ -2,7 +2,7 @@
 
 FreeAssAlgebra = AbstractAlgebra.Generic.FreeAssAlgebra
 
-export lp_groebner_basis, to_FreeAssAlgebra, to_LPRing
+export lp_groebner_basis, to_FreeAssAlgebra, to_LPRing, isCommutative_lp
 
 @doc raw"""
     to_LPRing(A::FreeAssAlgebra,deg::Int)
@@ -67,6 +67,8 @@ M = uniform_matroid(1,2)
 rels, u, A = getMatroidRelations(M,:bases)
 
 gb, prot, elapsed = lp_groebner_basis(rels, 4, prot=true)
+gb
+
 length(gb)
 
 # output 
@@ -95,7 +97,7 @@ function lp_groebner_basis(I::Vector{<:FreeAssAlgElem{T}},
         return gb, elapsed
     end
 
-    # If Protocal is requested
+    # If Prot is requested
     io = IOBuffer()
 
     old_stdout = stdout
@@ -115,4 +117,55 @@ function lp_groebner_basis(I::Vector{<:FreeAssAlgElem{T}},
 
     return to_FreeAssAlgebra.(Ref(AA_ring),gb), prot, elapsed
 end
+
+function isCommutative_lp(I::Vector{<:FreeAssAlgElem{T}}, deg::Int, all::Bool = true) where T <: FieldElem
+
+    Alg = parent(I[1])
+    m = ngens(Alg)
+    size = Int(floor(sqrt(m)))
+    nCDict = Dict{FreeAssAlgElem,Bool}() # true means is in ideal, false means not in ideal
+    c = true
+    LP_Ring, _  = to_LPRing(Alg, deg)
+    
+    I = Singular.Ideal(LP_Ring, LP_Ring.(I))
+    for i in 1:m-1, j in i+1:m
+        tst = Alg[i]*Alg[j] - Alg[j]*Alg[i]
+
+        j % size == i % size && continue
+        div(i-1,size) == div(j-1,size) && continue
+        if !iszero(reduce(LP_Ring(tst),I))
+            nCDict[tst] = false
+            all || return false, nCDict
+            c = false
+            continue
+        end
+        nCDict[tst] = true
+    end
+    return c, nCDict
+end
+
+
+
+
+#=
+M = uniform_matroid(3,4)
+
+len = length(M)^2 + 2
+
+rels, u, A = getMatroidRelations(M,:bases)
+
+isCommutative(loadInfo(M)["Aut_bases"])
+
+gb, prot, elapsed = lp_groebner_basis(rels, len, prot=true);
+
+LP_Ring, _   = to_LPRing(A, len)
+
+LP_gens = LP_Ring.(gb)
+
+isCommutative_lp(gb, len)
+=#
+#This was double checked wit ha different implementation, put in the notes what michael said in the meeting
+
+
+
 

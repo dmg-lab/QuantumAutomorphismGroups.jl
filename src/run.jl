@@ -122,7 +122,7 @@ end
 #=
 computeLpGbOfMatroid(uniform_matroid(3,4),:bases)
 =#
-function computeLpGbOfMatroid(M::Matroid, structure::Symbol)
+function computeLpGbOfMatroid(M::Matroid, structure::Symbol, deg::Int = length(M)^2+2)
 
     data_dir = "../data/"
     infoFile = ".info"
@@ -148,15 +148,14 @@ function computeLpGbOfMatroid(M::Matroid, structure::Symbol)
         #Compute
         println("Computing Aut_$(String(structure)) for  $(name)") 
         gns, _ , _ = getMatroidRelations(M,structure)
-        len = length(M)^2 + 2
 
 
-        gb, prot, elapsed = lp_groebner_basis(gns, len, prot=true)
-        length(gb)
+        gb, prot, elapsed = lp_groebner_basis(gns, deg, prot=true)
 
 
         #Saving 
         info["Aut_" * String(structure)*"_lp"] = (gb);
+        info["Aut_" * String(structure)*"_lp_degree_bound"] = deg;
         info["Aut_" * String(structure)*"_lp_timed"] = elapsed;
         info["Aut_" * String(structure)*"_lp_prot"] = UInt8.(collect(prot))
         saveDict(fullpath, info)
