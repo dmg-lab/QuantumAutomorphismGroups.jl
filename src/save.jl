@@ -3,6 +3,9 @@ using Oscar.JSON
 using Oscar.AbstractAlgebra
 using Oscar.AbstractAlgebra.Generic
 
+export saveDict, loadDict
+
+
 function toNamedTuple(v::Vector{Dict{Int,Int}})
     res =Vector{NamedTuple}()
     for ds in v 
@@ -72,7 +75,14 @@ function loadDict(path::String)
     return dct
 end
 
+#=
 
+M = uniform_matroid(1,3)
+loadDict(M)
+=#
+function loadDict(M::Matroid)
+    return loadDict("../data/r$(rank(M))n$(length(M))/$(getName(M)).info")
+end
 
 
 #=

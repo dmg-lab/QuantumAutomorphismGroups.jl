@@ -121,6 +121,7 @@ end
 
 #=
 computeLpGbOfMatroid(uniform_matroid(3,4),:bases)
+loadDict(uniform_matroid(3,4))
 =#
 function computeLpGbOfMatroid(M::Matroid, structure::Symbol, deg::Int = length(M)^2+2)
 

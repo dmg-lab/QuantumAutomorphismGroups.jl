@@ -7,7 +7,8 @@ export getName,
     custom_deg,
     altNameToRevlex,
     altNameToMatroid,
-    altName
+    altName,
+    loadDict
 
 
 
