@@ -8,11 +8,20 @@ export addAutToDF,
     loadInfo,
     loadAll,
     loadDf,
-    toDataFrame
+    toDataFrame,
+    getVanishingVariables,
+    isIncluded,
+    getSubgroups,
+    subgroupDict,
+    getClasses,
+    getPath,
+    addToInfo
+
 #=
 M = uniform_matroid(0,1)
 structure = "bases"
 df = addAutToDF(M,true)
+loadInfo(fano_matroid())
 select(df,[:Name,:length,:rank, :Aut_B, :LpAut_B])
 
 names(df)
@@ -24,7 +33,7 @@ function addAutToDF(M::Matroid, recompute::Bool=false)
     else
         df = DataFrame(Name=String[])
     end
-    df = addAutToDF(M,recompute,df)
+    df = addAutToDF(M,df,recompute)
     CSV.write("../data/data_table.csv",df)
     return df
 end
@@ -32,15 +41,10 @@ end
 
 
 
-function addAutToDF(M::Matroid, recompute::Bool=false,df::DataFrame=DataFrame())
+function addAutToDF(M::Matroid, df::DataFrame, recompute::Bool=false)
     dct = loadDict(M)
     name = getName(M)
     #Load existing DataFrame
-    if isfile("../data/data_table.csv")
-        df = CSV.read("../data/data_table.csv",DataFrame)
-    else
-        df = DataFrame(Name=String[])
-    end
 
     row = filter(:Name => ==(name),df)
     size(row)[1] == 0 ? 
@@ -76,10 +80,14 @@ function addAutToDF(M::Matroid, recompute::Bool=false,df::DataFrame=DataFrame())
                 if recompute || !haskey(data, newDataName) || ismissing(data[newDataName])
                     data[newDataName] = maximum(total_degree.(dct[key]))
                 end
-                maxdeg = newDataName
+                newDataName = "LpAut_$(uppercase(structure[1]))_n_vvariables"
+                if recompute || !haskey(data, newDataName) || ismissing(data[newDataName])
+                    data[newDataName] = length(getVanishingVariables(dct[key]))
+                end
+                maxdeg = data["LpAut_$(uppercase(structure[1]))_max_degree"]
                 newDataName = "LpAut_$(uppercase(structure[1]))"
                 if recompute || !haskey(data, newDataName) || ismissing(data[newDataName])
-                    data[newDataName] = isCommutative_lp(dct[key],max(data[maxdeg],2))[1]
+                    data[newDataName] = isCommutative_lp(dct[key],max(maxdeg,2))[1]
                 end
             elseif key == "Aut_$(structure)_lp_degree_bound"
                 newDataName = "LpAut_$(uppercase(structure[1]))_degree_bound"
@@ -165,23 +173,23 @@ function loadDf()
     CSV.read("../data/data_table.csv",DataFrame)
 end
 
- 
+#=
+getPath(non_fano_matroid())
+=#
+function getPath(name::String)
+    data_dir = "../data/"
+    dir, _ = split(name,"_")
+    return data_dir* dir*"/" * name * ".info"
+end
+getPath(M::Matroid) = getPath(getName(M)) 
 
 #=
-info = loadInfo(non_fano_matroid())
-split.(keys(info),"_")
-I = info["Aut_bases_lp"]
-
-maximum(total_degree.(I)) # To get the maximum degree of the polynomials
-AbstractAlgebra.groebner_basis(I)
-
+info = loadInfo(fano_matroid())
 =#
-
-function loadInfo(name::String,show::Bool=false)
+function loadInfo(name::String)
 
     data_dir = "../data/"
     infoFile = ".info"
-    table_dir = data_dir*"data_table.csv"
 
     folder = split(name,"_")[1]
     
@@ -194,171 +202,259 @@ function loadInfo(name::String,show::Bool=false)
 
     #Check if info exists, if not create it
     if isfile(fullpath) 
-        
-        df = CSV.read(table_dir,DataFrame)
-
-        show && show(filter(:Name=> ==(name),df))
-
-        return  loadDict(fullpath)
+        return  load(fullpath)
     else
         throw(ArgumentError("No data for this matroid exists"))
     end
 
 end
 
-
 loadInfo(M::Matroid) = loadInfo(getName(M))
 
-
-
-
-
 #=
-loadAll(true)
+x, timimg = @timed loadAll(false,false);
 =#
-function loadAll(prettyprint::Bool=false)
+function loadAll(resave::Bool=false, prettyprint::Bool=true, showprogress::Bool=true)
     data_dir = "../data/"
 
     data = Dict{String,Dict{String,Any}}()
     
-    for folder in readdir(data_dir)
-        if isdir(data_dir * folder)
-            for file in readdir(data_dir * folder)
-                if isfile(data_dir * folder * "/" * file)
-                    if prettyprint
-                        path = data_dir * folder * "/" * file
-                        cmd = pipeline(`jq . $path `,` sponge $path`)
-                        run(cmd) 
-                    end
-                    #cut of the .info
-                    fileName = split(file,".")[1]
-                    data[fileName] = loadDict(data_dir * folder * "/" * file)
+
+    filenames = []
+    for (root, _, files) in walkdir(data_dir)
+        for file in files
+            name, ext = splitext(file)
+            if ext != ".info" 
+                continue
+            end
+            path = root * "/" * file
+            push!(filenames,(name,path))
+        end
+    end
+    @info "$(length(filenames)) files to process."
+
+    if showprogress
+        @showprogress for (name,path) in filenames 
+            dct = load(path)
+            data[name] = dct
+            if resave
+                save(path,dct)
+            end
+            if prettyprint
+                cmd = pipeline(`jq . $path `,`sponge $path`)
+                run(cmd)
+            end
+        end
+    else
+        for (name,path) in filenames 
+            dct = load(path)
+            data[name] = dct
+            if resave
+                save(path,dct)
+            end
+            if prettyprint
+                cmd = pipeline(`jq . $path `,`sponge $path`)
+                run(cmd)
+            end
+        end
+    end
+
+    return data
+end
+
+#=
+M = non_fano_matroid()
+=#
+function addToInfo(name::String, key::String, value::Any)
+    path = getPath(name)
+    @assert isfile(path) "No data for this matroid exists"
+    info = loadInfo(name)
+    info[key] = value
+    save(path,info)
+    return info
+end
+addToInfo(M::Matroid, key::String, value::Any) = addToInfo(getName(M),key,value)
+
+#=
+M = non_fano_matroid()
+info = loadInfo(M)
+
+x = length(getVanishingVariables(M))
+=#
+
+function getVanishingVariables(M::Matroid) 
+    info = loadInfo(M)
+    haskey(info,"Aut_bases_lp") || return nothing
+    I = info["Aut_bases_lp"]
+    return getVanishingVariables(I)
+end
+
+function getVanishingVariables(I::Vector{<:FreeAssAlgElem{T}}) where T <:FieldElem
+    deg = maximum(total_degree.(I))
+    Alg = parent(I[1])
+    
+    LP_Ring, _  = to_LPRing(Alg, deg)
+    I = Singular.Ideal(LP_Ring, LP_Ring.(I))
+    
+    ans = []
+    for var in gens(Alg)
+        iszero(reduce(LP_Ring(var),I)) && push!(ans,var)
+    end
+    return ans
+end
+
+
+#=
+M = uniform_matroid(3,4)
+isIncluded(M,M)
+=#
+
+# Check weather the Quantum automorphism group of M is included in the Quantum automorphism group of N
+function isIncluded(M::Matroid, N::Matroid)
+    @assert length(M) == length(N)
+    infoM = loadInfo(M)
+    infoN = loadInfo(N)
+    haskey(infoM,"Aut_bases_lp") || return nothing
+    haskey(infoN,"Aut_bases_lp") || return nothing
+    I = infoM["Aut_bases_lp"]
+    J = infoN["Aut_bases_lp"]
+    return isIncluded(J,I) #Switched the order
+end
+
+
+# Check weather the Ideal I is included in the Ideal of J
+function isIncluded(I::Vector{<:FreeAssAlgElem{T}}, J::Vector{<:FreeAssAlgElem{T}}) where T <:FieldElem
+    deg = max(maximum(total_degree.(I)),maximum(total_degree.(J)))
+    Alg = parent(I[1])
+    
+    LP_Ring, _  = to_LPRing(Alg, deg)
+    J = Singular.Ideal(LP_Ring, LP_Ring.(J))
+    for func in I
+        if !iszero(reduce(LP_Ring(func),J))
+            return false
+        end
+    end 
+    return true
+end
+
+#=
+M = uniform_matroid(2,4)
+sg = getSubgroups(M)
+
+N = non_fano_matroid()
+getSubgroups(N)
+
+
+QuantumAutomorphismGroups.addSubgroupsToInfo()
+=#
+function addSubgroupsToInfo()
+    dct = loadAll(false,false,false)
+    @showprogress for (name,info) in pairs(dct)
+        M = nameToMatroid(name)
+        subgroups = getSubgroups(M)
+        isnothing(subgroups) && continue
+        addToInfo(M,"Aut_bases_lp_subgroups",subgroups)
+        
+    end
+end
+
+
+
+
+
+function getSubgroups(M::Matroid)
+    info = loadInfo(M)
+    haskey(info,"Aut_bases_lp") || return nothing
+    I = info["Aut_bases_lp"]
+
+    path = "../data/data_table.csv"
+    df = CSV.read(path,DataFrame)
+
+    mat_names = String.(df[!,:Name])
+    subgroups = String[]
+    filter!(x->x!=getName(M),mat_names)
+
+    for name in String.(mat_names)
+        N = nameToMatroid(name)
+        length(M) == length(N) || continue
+        if isIncluded(N,M) == true
+            push!(subgroups,name)
+        end
+
+    end
+
+    return subgroups
+end
+
+function subgroupDict()
+    path = "../data/data_table.csv"
+    df = CSV.read(path,DataFrame)
+
+    mat_names = String.(df[!,:Name])
+    subgroups = Dict{String,Vector{String}}()
+    for name in String.(mat_names)
+        M = nameToMatroid(name)
+        subgroups[name] = getSubgroups(M)
+    end
+    return subgroups
+end
+
+function getClasses()
+    dct = subgroupDict()
+    println("Computed subgroups")
+    anst = Dict{String,Vector{String}}()
+    @showprogress for (name,subgroups) in pairs(dct)
+        already_in = false
+        for anst in values(anst)
+            if name in anst
+                already_in = true
+                break
+            end
+        end
+        if already_in
+            continue
+        else
+            anst[name] = String[]
+            push!(anst[name],name)
+            for subgroup in subgroups
+                if name in dct[subgroup]
+                    push!(anst[name],subgroup)
                 end
             end
         end
     end
-    return data
-end
+    saveDict("../data/classes.info",anst)
+    return anst
 
+end
 
 #=
-db = Polymake.Polydb.get_db()
-collection = db["Matroids.Small"]
-cursor=Polymake.Polydb.find(collection, Dict("N_ELEMENTS"=>n))
-append!(Droids,Matroid.(cursor))
-
-M
-
-computed = []
-for (root, dirs, files) in walkdir("../data")
-    for file in files
-        name, ext = splitext(file)
-        ext != ".info" && continue
-        println("Processing $name")
-        fullpath = joinpath(root, file)
-        M = nameToMatroid(name)
-        dct = loadDict(M)
-        if haskey(dct,"Aut_bases_lp") && r
-            push!(computed,name)
-        end
-    end
-end
-
-comp_37 = filter(x->occursin("r3n7",x),computed)
-
-
-db = Polymake.Polydb.get_db()
-collection = db["Matroids.Small"]
-cursor=Polymake.Polydb.find(collection, Dict("N_ELEMENTS"=>7,"RANK"=>3))
-x = Matroid.(cursor)
-computed 
-
-
-for (root, dirs, files) in walkdir("../data")
-    for file in files
-        name, ext = splitext(file)
-        ext != ".info" && continue
-        println("Processing $name")
-        fullpath = joinpath(root, file)
-        M = nameToMatroid(name)
-        dct = loadDict(M)
-        if haskey(dct,"Aut_bases_lp")
-            dct["Aut_bases_lp_degree_bound"] = length(M)^2 +2
-        end
-        saveDict(fullpath,dct)
-    end
-end
-
-M=non_fano_matroid()
-length(M)^2+2
-loadDict(nameToMatroid(getName(M)))
-=#
-
-#= Save and Load File
-using Oscar
-using DataFrames
-using ProgressBars
-using CSV
-
-
-path = "../data/data_table.csv"
-df = CSV.read(path,DataFrame)
-select!(df,:Aut_B_timed)
-the bear
-filter(:Name=> ==("r1n7_1"),df)
-
-df = select(df,[:Name,:length,:rank, :Aut_B,:Aut_C,:Aut_B_stored,:Aut_C_stored])
-sort!(df,[:length,:rank])
-CSV.write(path,df)
-loadInfo("r2n6_0003")
-
-=#
-
-#=
-path = "../data/data_table.csv"
-df = CSV.read(path,DataFrame)
+df = loadDf()
 names(df)
-=#
+df1 = select(df,[:Name,:length,:rank, :LpAut_B, :Aut_B])
+print(df1)
+sort!(df1,:LpAut_B_max_degree)
+sort!(df1,:LpAut_B_timed)
+getName(fano_matroid())
+getName(non_fano_matroid())
+info = loadInfo(fano_matroid())
 
+gb_lp = info["Aut_bases_lp"]
+gb = AbstractAlgebra.groebner_basis(gb_lp)
+
+M = nameToMatroid("r3n7_000007fff")
+cyclic_flats(non_fano_matroid())
+print(df1)
+=#
 #=
-i=0
-for (root, dirs, files) in walkdir("../data")
-    for file in files
-        i+=1
-    end
-end
+info = loadInfo(non_fano_matroid())
+info["Aut_bases_lp"]
 
-p = Progress(i)
-if isfile("../data/data_table.csv")
-    df = CSV.read("../data/data_table.csv",DataFrame)
-else
-    df = DataFrame(Name=String[])
-end
+getVanishingVariables(non_fano_matroid())
 
-for (root, dirs, files) in walkdir("../data")
-    for file in files
-        name, ext = splitext(file)
-        if ext != ".info" 
-            next!(p) 
-            continue
-        end
-        println("Processing $name")
-        fullpath = joinpath(root, file)
-        M = nameToMatroid(name)
-        addAutToDF(M,false,df)
-        next!(p)
-    end
-end
+getVanishingVariables(nameToMatroid("r3n7_3f7efffff"))
 
-CSV.write("../data/data_table.csv",df)
-
-
-M= non_fano_matroid()
-println.(loadDict(M)["Aut_bases_lp"])
-isCommutative_lp(loadDict(M)["Aut_bases_lp"],3)
-
-
+pop_first!(cyclic_flats(M))
+cyclic_flats(nameToMatroid("r3n7_3f7eefd7f"))
+getSubgroups(nameToMatroid("r3n7_3f7eefd7f"))
 =#
-
-
-
