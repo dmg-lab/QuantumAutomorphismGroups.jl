@@ -179,7 +179,7 @@ true
 ```
 """
 function isCommutative(M::Matroid, structure::Symbol = :bases, alt::Bool = false, n::Int = 3)
-    relsToAdd, _, A = getMatroidRelations(M,structure)
+    relsToAdd, _, _, A = getMatroidRelations(M,structure)
     if alt
         I = Oscar.ideal(A,relsToAdd)
         return isCommutative(I)
@@ -254,11 +254,11 @@ Vector{FreeAssAlgElem{QQFieldElem}}
 """
 function getMatroidRelations(
     M::MultiSetMatroid,
-    structure::Symbol=:bases,
-    interreduce::Bool=false)
+    structure::Symbol=:bases)
     
     relation_indices = getRelations(M,structure)
-    relation_transformed,  u, A = getQuantumPermutationGroup(length(M.classic),interreduce)
+    relation_transformed, rels_sorted, u, A = getQuantumPermutationGroup(length(M.classic))
+    rels_sorted[:matroid] = typeof(rels_sorted[:zero_divisor])[]
 
     for relation in relation_indices
         temp = one(A)
@@ -266,11 +266,12 @@ function getMatroidRelations(
             temp = temp * u[gen[1], gen[2]]
         end
         push!(relation_transformed,temp)
+        push!(rels_sorted[:matroid],temp)
     end
   
-    return relation_transformed,  u, A
+    return relation_transformed,  rels_sorted, u, A
 
 end
 
-getMatroidRelations(M::Matroid, structure::Symbol=:bases, interreduce::Bool=false)= getMatroidRelations(MultiSetMatroid(M),structure,interreduce)
+getMatroidRelations(M::Matroid, structure::Symbol=:bases)= getMatroidRelations(MultiSetMatroid(M),structure)
 

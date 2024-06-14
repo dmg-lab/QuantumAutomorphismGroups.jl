@@ -1,5 +1,10 @@
 using Oscar
 
+export
+    getQuantumPermutationGroup
+
+
+
 @doc raw"""
 
     MultiSetMatroid(matroid::Matroid)
@@ -220,40 +225,44 @@ getRelations_rank(M::Matroid)=getRelations_rank(MultiSetMatroid(M))
 
 
 @doc raw"""
-    getQuantumPermutationGroup(n::Int,interreduce::Bool=true)
+    getQuantumPermutationGroup(n::Int)
 
-Get the relations that define the quantum permutation group on `n` elements. If interreduce is true, it uses the interreduce function from Oscar to reduce the number of generators.
+Get the relations that define the quantum permutation group on `n` elements.
 
 # Examples
 ```jldoctest
-rels, u, A = QuantumAutomorphismGroups.getQuantumPermutationGroup(3)
+rels,_, u, A = QuantumAutomorphismGroups.getQuantumPermutationGroup(3)
 length(rels)
 # output
 
 20
 ```
 """
-function getQuantumPermutationGroup(n::Int,interreduce::Bool=true)
+function getQuantumPermutationGroup(n::Int)
     generator_strings = String[]
     for i in 1:n, j in 1:n
             push!(generator_strings, "u[$i,$j]")
     end
-    A, g = FreeAssociativeAlgebra(Oscar.QQ, generator_strings)
+    A, g = free_associative_algebra(Oscar.QQ, generator_strings)
     u = Matrix{elem_type(A)}(undef, n, n)
     for i in 1:n, j in 1:n
             u[i, j] = g[(i-1)*n + j]
     end
-    relations = elem_type(A)[]
-    #Squared relations
+    rels_by_type = Dict{Symbol, Vector{elem_type(A)}}()
+    rels_by_type[:idempotent] = elem_type(A)[]
+    rels_by_type[:row_sum] = elem_type(A)[]
+    rels_by_type[:col_sum] = elem_type(A)[]
+    rels_by_type[:zero_divisor] = elem_type(A)[]
+    #Idempotent relations
     for i in 1:n, j in 1:n
         new_relation = u[i, j] * u[i, j] - u[i, j]
-            push!(relations, new_relation)
+        push!(rels_by_type[:idempotent], new_relation)
             for k in 1:n
                     if k != j
                         new_relation = u[i,j] * u[i, k]
-                        push!(relations, new_relation)
+                        push!(rels_by_type[:zero_divisor], new_relation)
                         new_relation = u[j, i]*u[k, i]
-                        push!(relations, new_relation)
+                        push!(rels_by_type[:zero_divisor], new_relation)
                     end
             end
     end
@@ -266,12 +275,13 @@ function getQuantumPermutationGroup(n::Int,interreduce::Bool=true)
             new_relation_row += u[i,k]
             new_relation_col += u[k,i]
         end
-        push!(relations, new_relation_row)
-        push!(relations, new_relation_col)
+        push!(rels_by_type[:row_sum], new_relation_row)
+        push!(rels_by_type[:col_sum], new_relation_col)
 
     end
-    interreduce && interreduce!(relations)
-
-    return Vector{elem_type(A)}(relations), u, A
+    relations = elem_type(A)[]
+    for rel_type in keys(rels_by_type)
+        relations = vcat(relations, rels_by_type[rel_type])
+    end
+    return Vector{elem_type(A)}(relations),rels_by_type, u, A
 end
-
