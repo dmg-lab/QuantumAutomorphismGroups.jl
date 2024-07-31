@@ -131,17 +131,27 @@ isCommutative(V)
 
 true
 ```
+
+```
+using Oscar
+M = uniform_matroid(3,4)
+I,_ ,u, Alg = getMatroidRelations(M,:bases) #Switch :bases with :circuits, :rank, :flats to get the other Aut_*(M)
+A = parent(I[1])
+Int(sqrt(ngens(A)))
+```
+
 """
 function isCommutative(I::Vector{<:FreeAssAlgElem{T}}, all::Bool = true) where T <: FieldElem
-
-    Alg = parent(I[1])
+    A = parent(I[1])
     m = ngens(Alg)
-    size = Int(floor(sqrt(m)))
+    n = Int(floor(sqrt(m)))
+
+    u = permutedims(reshape(gens(A),(n,n),[2,1]))
     nCDict = Dict{FreeAssAlgElem,Bool}() # true means is in ideal, false means not in ideal
     c = true
 
-    for i in 1:m-1, j in i+1:m
-        tst = Alg[i]*Alg[j] - Alg[j]*Alg[i]
+    for i in 1:n, j in i+1:n
+        tst = u[i,j]*u[j,i] - u[j,i]*u[i,j]
 
         j % size == i % size && continue
         div(i-1,size) == div(j-1,size) && continue

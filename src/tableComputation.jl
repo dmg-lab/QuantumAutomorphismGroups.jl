@@ -203,15 +203,30 @@ using CSV
 
 path = "../data/data_table.csv"
 df = CSV.read(path,DataFrame)
-select!(df,:Aut_B_timed)
+sort!(df,:Aut_B_timed)
+select!(df,[:Name,:length,:rank, :Aut_B,:Aut_C,:Aut_B_timed])
+println(df)
+
 
 filter(:Name=> ==("r1n7_1"),df)
+
 
 df = select(df,[:Name,:length,:rank, :Aut_B,:Aut_C,:Aut_B_stored,:Aut_C_stored])
 sort!(df,[:length,:rank])
 CSV.write(path,df)
-loadInfo("r2n6_0003")
+loadInfo("r2n6_16ef")
+r3n6_001ff
+H = nameToMatroid("r2n6_16ef")
+H = matroid_from_bases([[2, 4, 6], [3, 4, 6], [2, 5, 6], [3, 5, 6], [4, 5, 6]],6)
+H1 = matroid_from_bases([[2, 3], [2, 4], [3, 4], [2, 5], [3, 5], [4, 5], [2, 6], [3, 6], [4, 6], [5, 6]],6)
+bases(H)
 
+print("[")
+for b in bases(H)
+print("$(b), ")
+end
+println("]")
+@time 
 =#
 
 #=

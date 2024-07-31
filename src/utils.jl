@@ -141,6 +141,8 @@ altName(uniform_matroid(1,3))
 Int(ceil(binomial(7,3)/4))
 name = "r3n7_00c360dd7" #That is an new name
 oldname = "r2n6_001"
+getName(fano_matroid())
+getName(uniform_matroid(2,4))
 altNameToMatroid(name)
 getName(altNameToMatroid(name))
 binomial(7,3)/4
