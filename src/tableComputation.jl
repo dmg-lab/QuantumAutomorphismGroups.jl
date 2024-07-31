@@ -367,66 +367,35 @@ function getSubgroups(M::Matroid)
     haskey(info,"Aut_bases_lp") || return nothing
     I = info["Aut_bases_lp"]
 
-    path = "../data/data_table.csv"
-    df = CSV.read(path,DataFrame)
+path = "../data/data_table.csv"
+df = CSV.read(path,DataFrame)
+sort!(df,:Aut_B_timed)
+select!(df,[:Name,:length,:rank, :Aut_B,:Aut_C,:Aut_B_timed])
+println(df)
+
 
     mat_names = String.(df[!,:Name])
     subgroups = String[]
     filter!(x->x!=getName(M),mat_names)
 
-    for name in String.(mat_names)
-        N = nameToMatroid(name)
-        length(M) == length(N) || continue
-        if isIncluded(N,M) == true
-            push!(subgroups,name)
-        end
 
-    end
+df = select(df,[:Name,:length,:rank, :Aut_B,:Aut_C,:Aut_B_stored,:Aut_C_stored])
+sort!(df,[:length,:rank])
+CSV.write(path,df)
+loadInfo("r2n6_16ef")
+r3n6_001ff
+H = nameToMatroid("r2n6_16ef")
+H = matroid_from_bases([[2, 4, 6], [3, 4, 6], [2, 5, 6], [3, 5, 6], [4, 5, 6]],6)
+H1 = matroid_from_bases([[2, 3], [2, 4], [3, 4], [2, 5], [3, 5], [4, 5], [2, 6], [3, 6], [4, 6], [5, 6]],6)
+bases(H)
 
-    return subgroups
+print("[")
+for b in bases(H)
+print("$(b), ")
 end
-
-function subgroupDict()
-    path = "../data/data_table.csv"
-    df = CSV.read(path,DataFrame)
-
-    mat_names = String.(df[!,:Name])
-    subgroups = Dict{String,Vector{String}}()
-    for name in String.(mat_names)
-        M = nameToMatroid(name)
-        subgroups[name] = getSubgroups(M)
-    end
-    return subgroups
-end
-
-function getClasses()
-    dct = subgroupDict()
-    println("Computed subgroups")
-    anst = Dict{String,Vector{String}}()
-    @showprogress for (name,subgroups) in pairs(dct)
-        already_in = false
-        for anst in values(anst)
-            if name in anst
-                already_in = true
-                break
-            end
-        end
-        if already_in
-            continue
-        else
-            anst[name] = String[]
-            push!(anst[name],name)
-            for subgroup in subgroups
-                if name in dct[subgroup]
-                    push!(anst[name],subgroup)
-                end
-            end
-        end
-    end
-    saveDict("../data/classes.info",anst)
-    return anst
-
-end
+println("]")
+@time 
+=#
 
 #=
 df = loadDf()

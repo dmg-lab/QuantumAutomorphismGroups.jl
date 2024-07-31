@@ -2,46 +2,40 @@
   "_ns": {
     "Oscar": [
       "https://github.com/oscar-system/Oscar.jl",
-      "1.1.0-DEV-bd8e18b45854187743733b0ba1b9c56c27f7f73a"
+      "0.14.0-DEV-4b266a84c43b8c2c1813e1872e25ab98280cc9f3"
     ]
   },
   "_type": {
-    "name": "Dict",
+    "name": "NamedTuple",
     "params": {
-      "key_type": "String",
-      "Aut_circuits": {
-        "name": "Vector",
-        "params": {
-          "name": "FreeAssAlgElem",
-          "params": "ef247afe-dc75-48ed-9daa-dfe6c0c31662"
+      "tuple_params": [
+        {
+          "name": "Vector",
+          "params": {
+            "name": "FreeAssAlgElem",
+            "params": "556d2871-3200-454c-a947-d8248dc5d608"
+          }
+        },
+        "String",
+        "Float64",
+        {
+          "name": "Vector",
+          "params": {
+            "name": "FreeAssAlgElem",
+            "params": "556d2871-3200-454c-a947-d8248dc5d608"
+          }
         }
-      },
-      "revlex_basis_encoding": "String",
-      "Aut_bases_timed": "Float64",
-      "Aut_bases_lp": {
-        "name": "Vector",
-        "params": {
-          "name": "FreeAssAlgElem",
-          "params": "ef247afe-dc75-48ed-9daa-dfe6c0c31662"
-        }
-      },
-      "Aut_bases": {
-        "name": "Vector",
-        "params": {
-          "name": "FreeAssAlgElem",
-          "params": "ef247afe-dc75-48ed-9daa-dfe6c0c31662"
-        }
-      },
-      "Aut_bases_lp_timed": "Float64",
-      "Aut_bases_lp_prot": {
-        "name": "Vector",
-        "params": "UInt8"
-      },
-      "Aut_bases_lp_degree_bound": "Base.Int"
+      ],
+      "names": [
+        "Aut_circuits",
+        "revlex_basis_encoding",
+        "Aut_bases_timed",
+        "Aut_bases"
+      ]
     }
   },
-  "data": {
-    "Aut_circuits": [
+  "data": [
+    [
       [
         [
           [
@@ -247,76 +241,9 @@
         ]
       ]
     ],
-    "revlex_basis_encoding": "**",
-    "Aut_bases_timed": "0.093414023",
-    "Aut_bases_lp": [
-      [
-        [
-          [
-            "3"
-          ],
-          "1"
-        ],
-        [
-          [
-            "4"
-          ],
-          "1"
-        ],
-        [
-          [],
-          "-1"
-        ]
-      ],
-      [
-        [
-          [
-            "2"
-          ],
-          "1"
-        ],
-        [
-          [
-            "4"
-          ],
-          "1"
-        ],
-        [
-          [],
-          "-1"
-        ]
-      ],
-      [
-        [
-          [
-            "1"
-          ],
-          "1"
-        ],
-        [
-          [
-            "4"
-          ],
-          "-1"
-        ]
-      ],
-      [
-        [
-          [
-            "4",
-            "4"
-          ],
-          "1"
-        ],
-        [
-          [
-            "4"
-          ],
-          "-1"
-        ]
-      ]
-    ],
-    "Aut_bases": [
+    "**",
+    "0.093414023",
+    [
       [
         [
           [
@@ -521,110 +448,10 @@
           "-1"
         ]
       ]
-    ],
-    "Aut_bases_lp_timed": "0.033404715",
-    "Aut_bases_lp_prot": [
-      "49",
-      "40",
-      "49",
-      "53",
-      "41",
-      "115",
-      "40",
-      "49",
-      "52",
-      "41",
-      "115",
-      "40",
-      "49",
-      "51",
-      "41",
-      "115",
-      "40",
-      "49",
-      "50",
-      "41",
-      "50",
-      "45",
-      "115",
-      "40",
-      "49",
-      "49",
-      "41",
-      "45",
-      "45",
-      "45",
-      "45",
-      "45",
-      "45",
-      "45",
-      "45",
-      "45",
-      "45",
-      "10",
-      "112",
-      "114",
-      "111",
-      "100",
-      "117",
-      "99",
-      "116",
-      "32",
-      "99",
-      "114",
-      "105",
-      "116",
-      "101",
-      "114",
-      "105",
-      "111",
-      "110",
-      "58",
-      "48",
-      "32",
-      "99",
-      "104",
-      "97",
-      "105",
-      "110",
-      "32",
-      "99",
-      "114",
-      "105",
-      "116",
-      "101",
-      "114",
-      "105",
-      "111",
-      "110",
-      "58",
-      "48",
-      "10",
-      "115",
-      "104",
-      "105",
-      "102",
-      "116",
-      "32",
-      "86",
-      "32",
-      "99",
-      "114",
-      "105",
-      "116",
-      "101",
-      "114",
-      "105",
-      "111",
-      "110",
-      "58",
-      "57",
-      "10"
-    ],
-    "Aut_bases_lp_degree_bound": "6"
-  },
+    ]
+  ],
   "_refs": {
-    "ef247afe-dc75-48ed-9daa-dfe6c0c31662": {
+    "556d2871-3200-454c-a947-d8248dc5d608": {
       "_type": "FreeAssAlgebra",
       "data": {
         "base_ring": {
