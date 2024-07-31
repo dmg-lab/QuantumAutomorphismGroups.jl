@@ -361,12 +361,7 @@ end
 
 
 
-
-function getSubgroups(M::Matroid)
-    info = loadInfo(M)
-    haskey(info,"Aut_bases_lp") || return nothing
-    I = info["Aut_bases_lp"]
-
+#=
 path = "../data/data_table.csv"
 df = CSV.read(path,DataFrame)
 sort!(df,:Aut_B_timed)
@@ -389,12 +384,6 @@ H = matroid_from_bases([[2, 4, 6], [3, 4, 6], [2, 5, 6], [3, 5, 6], [4, 5, 6]],6
 H1 = matroid_from_bases([[2, 3], [2, 4], [3, 4], [2, 5], [3, 5], [4, 5], [2, 6], [3, 6], [4, 6], [5, 6]],6)
 bases(H)
 
-print("[")
-for b in bases(H)
-print("$(b), ")
-end
-println("]")
-@time 
 =#
 
 #=
