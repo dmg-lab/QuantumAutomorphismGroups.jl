@@ -3,7 +3,6 @@ using Oscar
 using CSV
 using DataFrames
 using Statistics
-using Distributed
 using PlotThemes
 using Plots
 using StatsPlots
@@ -34,7 +33,7 @@ function get_unified_df()
     unified_df[!,:deg_bound10] = read_df(10)[!,:deg_bound10]
     unified_df[!,:deg_bound15] = read_df(15)[!,:deg_bound15]
     unified_df[!,:max_deg] = read_df(-1)[!,:max_deg]
-
+\
     datasets =[:no_deg_bound, :deg_bound4, :deg_bound10, :deg_bound15]
 
     #If the value is -1, we replace it by 1 week in seconds (7*24*60*60)
@@ -69,7 +68,7 @@ function print_speed_comparison()
     plot(
     qqplot(df[!,:no_deg_bound],df[!,:deg_bound4],xlabel="nc-buchberger vs degree bound 4",scale=:log10,ylabel="Time (s)"),
     qqplot(df[!,:no_deg_bound],df[!,:deg_bound10],xlabel="nc-buchberger vs degree bound 10",scale=:log10,ylabel="Time (s)"),
-    qqplot(df[!,:no_deg_bound],df[!,:deg_bound15],xlabel="nc-buchberger vs degree bound 15",scale=:log10,ylabel="Time (s)"))
+    qqplot(df[!,:no_deg_bound],df[!,:deg_bound15],xlabel="nc-buchberger vs degree bound 15",scale=:log10,ylabel="Time (s)"),
+    histogram(df[!,:max_deg],xlabel="Max degree",ylabel="Number of gb",bins=2:5,legend=false))
 end
 
-    
