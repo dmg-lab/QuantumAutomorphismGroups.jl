@@ -26,8 +26,9 @@ function compute_all_timings(runner_id::Int=-1, recompute::Bool=false)
   df = read_df(runner_id)
   mat_names = String.(df[!,:Name])
   for name in mat_names
+    print("Computing $(name)... ")
     compute_timing(name,runner_id,runner_id,recompute)
-      println("$(name) done, for deg_bound = $(runner_id)")
+    println("...done, for deg_bound = $(runner_id)")
   end
 end
 
@@ -59,7 +60,6 @@ function compute_timing(mat_name::String, deg_bound::Int=-1, runner_id::Int=0, r
   
   M = nameToMatroid(mat_name)
   qAut, _ , _  = getMatroidRelations(M,:bases)
-  groebner_basis(qAut,deg_bound)
   
   if deg_bound == -1
     gb, elapsed = @timed groebner_basis(qAut)
@@ -78,11 +78,7 @@ end
 
 
 
-#=
-
-compute_all_timings(-1,true)
-
-=#
+compute_all_timings(deg_bound,true)
 
 
 
