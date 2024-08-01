@@ -362,16 +362,18 @@ end
 
 
 #=
+using Oscar
+using DataFrames
+using CSV
+
 path = "../data/data_table.csv"
 df = CSV.read(path,DataFrame)
 sort!(df,:Aut_B_timed)
-select!(df,[:Name,:length,:rank, :Aut_B,:Aut_C,:Aut_B_timed])
-println(df)
+mat_names = String.(df[!,:Name])
+unique!(mat_names)
 
 
-    mat_names = String.(df[!,:Name])
-    subgroups = String[]
-    filter!(x->x!=getName(M),mat_names)
+
 
 
 df = select(df,[:Name,:length,:rank, :Aut_B,:Aut_C,:Aut_B_stored,:Aut_C_stored])
@@ -389,6 +391,7 @@ bases(H)
 #=
 df = loadDf()
 names(df)
+df1 = select(df,[:Name])
 df1 = select(df,[:Name,:length,:rank, :LpAut_B, :Aut_B])
 print(df1)
 sort!(df1,:LpAut_B_max_degree)
