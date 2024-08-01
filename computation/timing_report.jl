@@ -69,6 +69,7 @@ function print_speed_comparison()
     qqplot(df[!,:no_deg_bound],df[!,:deg_bound4],xlabel="nc-buchberger vs degree bound 4",scale=:log10,ylabel="Time (s)"),
     qqplot(df[!,:no_deg_bound],df[!,:deg_bound10],xlabel="nc-buchberger vs degree bound 10",scale=:log10,ylabel="Time (s)"),
     qqplot(df[!,:no_deg_bound],df[!,:deg_bound15],xlabel="nc-buchberger vs degree bound 15",scale=:log10,ylabel="Time (s)"),
-    histogram(df[!,:max_deg],xlabel="Max degree",ylabel="Number of gb",bins=2:5,legend=false))
+    xlims=(0.0001,10^6),
+    ylims=(0.0001,10^6))
 end
 
