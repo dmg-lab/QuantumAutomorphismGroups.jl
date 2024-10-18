@@ -4,6 +4,12 @@ using QuantumAutomorphismGroups
 using CSV
 using DataFrames
 #=
+M = uniform_matroid(1,3)
+
+compute_and_store_gb(M,:bases)
+
+
+
 #M = non_fano_matroid()
 #computeLpGbOfMatroid(M,:bases)
 task_number = parse(Int,ENV["SLURM_ARRAY_TASK_ID"])
