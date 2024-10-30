@@ -9,7 +9,7 @@ Compute the Groebner basis of the quantum automorphism group of a matroid for a 
 
 # Examples
 ```julia
-computeGbOfMatroid(uniform_matroid(3,4))
+compute_and_store_gb(uniform_matroid(3,4),:circuits,deg_bound=6)
 
 ```
 """
