@@ -1,5 +1,7 @@
 export compute_and_store_gb
 export save_dict, load_dict, save_path
+export _data_path_iterator, _name_from_savepath
+export data_iterator
 
 @doc raw"""
 
@@ -108,4 +110,20 @@ end
 function save_path(M::Matroid)
   return "$(DATA_DIR)r$(rank(M))n$(length(M))/$(matroid_hex(M))$(INFO_FILETYPE)"
 end
+
+function _name_from_savepath(path::String)
+  return split(split(path, "/")[end], ".")[1]
+end
+
+function _data_path_iterator()
+    DATA_DIR = "../data/"
+    folders = readdir(DATA_DIR)
+    return (DATA_DIR * folder * "/" * file for folder in folders if isdir(DATA_DIR * folder) for file in readdir(DATA_DIR * folder))
+end
+
+function data_iterator()
+  return (load_dict(file) for file in _data_path_iterator())
+end
+
+
 

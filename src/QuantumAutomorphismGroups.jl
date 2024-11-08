@@ -8,6 +8,7 @@ module QuantumAutomorphismGroups
 
     include("./is_commutative.jl")
     include("./compute_and_store_gb.jl")
+    include("./data_table.jl")
 end
 
 
