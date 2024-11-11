@@ -11,8 +11,8 @@ module QuantumAutomorphismGroups
     include("./data_table.jl")
 
     #Not sure if this is the best place for this
-    include("./handle_old_data.jl")
-    include("./create_tex_table.jl")
+    include("./utils/handle_old_data.jl")
+    include("./utils/create_tex_table.jl")
 end
 
 
