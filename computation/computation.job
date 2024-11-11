@@ -1,5 +1,5 @@
 #!/bin/bash --login
-#SBATCH --job-name=gb
+#SBATCH --job-name=gb_b_-1
 #SBATCH --array=1-10
 #SBATCH --output=out/groebner_n_%a.out
 #SBATCH --time=168:00:00  
@@ -10,4 +10,4 @@
 
 export JULIA_NUM_PRECOMPILE_TASKS=1
 unset LD_LIBRARY_PATH 
-JULIA_DEPOT_PATH=$TMPDIR/julia julia-1.11 -e "using Pkg; Pkg.activate(\"../\",io=devnull); Pkg.instantiate(io=devnull); include(\"./cluster_job.jl\"); "
+JULIA_DEPOT_PATH=$TMPDIR/julia julia-1.11 --startup-file=no -e "using Pkg; Pkg.activate(\"../\",io=devnull); Pkg.instantiate(io=devnull); include(\"./cluster_job.jl\"); "

@@ -1,35 +1,109 @@
 using DataFrames
 using CSV
 
-export DataTable, add_data!
-export _key_to_name
+export DataTable, add_data!, data_table, add_names!, add_name!, get_row, save, load_dt
+export _key_to_name, _insert_or_overwrite
 
 
-struct DataTable
+mutable struct DataTable
     path_list::Vector{String}
     data::DataFrame
-    DataTable() = new(collect(_data_path_iterator()), DataFrame())
+    DataTable() = new(collect(_data_path_iterator()), DataFrame(:Name => String[]))
 end
 
-data_table = DataTable()
+data_table() = DataTable()
 
 
-function add_data!(df::DataFrame, path::String)
-    name = _name_from_savepath(path)
+function add_data!(dt::DataTable, path::String)
+    df = dt.data
+    name = String(_name_from_savepath(path))
     dct  = load_dict(path)
+  
+    M = matroid_from_matroid_hex(name)
+    add_name!(dt, name)
 
-    old_row = filter(:Name => ==(name), df)
-    
-    if size(old_row,1) == 0
-        data = Dict{String,Any}("Name" => name)
-    else
-        data = Dict{String,Any}(map(x -> String(x[1]) => x[2], pairs(old_row[1,:])))
+    row = get_row(df, name)
+
+    for key in keys(dct)
+      !occursin("Aut",key) && continue
+        
+        v = split(key, "_")
+        if length(v) == 3 #Not a timed thing
+          y = dct[key];
+          I = ideal(y);
+          I.gb = Oscar.IdealGens(y);
+          
+          df = _insert_or_overwrite(df, row, name, key, QuantumAutomorphismGroups.is_commutative(I))
+        
+          continue
+        end
+        if length(v) == 4
+
+          df = _insert_or_overwrite(df, row, name, key, dct[key])
+          continue
+        end
     end
 
-    for keys in keys(dct)
-        data[keys] = dct[keys]
+    dt.data = df
+    return df
+end
+
+function _insert_or_overwrite(df::DataFrame, row::DataFrameRow, name::String, key::String, value::Any)
+  if !(key in names(df))
+    df = outerjoin(df, DataFrame("Name" => name, key => value), on = :Name)
+    return df
+  end 
+  row[key] = value
+  return df
+end
+
+function add_data!(dt::DataTable, paths::Vector{String})
+    for pth in paths
+        add_data!(dt, pth)
     end
 end
+add_data!(dt::DataTable) = add_data!(dt, dt.path_list)
+
+function get_row(df::DataFrame, name::String)
+    return df[findfirst(==(name), df.Name), :]
+end
+
+get_row(dt::DataTable, name::String) = get_row(dt.data, name)
+
+Base.getindex(dt::DataTable, name::String) = get_row(dt, name)
+Base.getindex(dt::DataTable, M::Matroid) = get_row(dt, matroid_hex(M))
+
+function Oscar.save(dt::DataTable, path::String="../data/data_table.csv")
+
+    CSV.write(path, dt.data)
+end
+
+function load_dt(path::String="../data/data_table.csv")
+    dt = DataTable()
+    dt.data = CSV.read(path, DataFrame)
+    return dt 
+end
+
+function add_names!(dt::DataTable)
+    for pth in dt.path_list
+      name = _name_from_savepath(pth)
+      add_name!(dt, String(name))
+    end
+
+    return dt.data
+end
+
+function add_name!(dt::DataTable, name::String)
+  df = dt.data
+  row = filter(:Name => ==(name), df) 
+  if size(row)[1] == 0
+    M = matroid_from_matroid_hex(name)
+    append!(df, DataFrame("Name" => name, "Rank" => rank(M), "n" => length(M)),promote = true,cols = :union)
+  end
+  
+  return df
+end
+
 
 
 function _key_to_name(key::String)
@@ -42,46 +116,37 @@ function _key_to_name(key::String)
 end
 
 #=
-using Oscar
-_data_path_iterator()
-
-for path in _data_path_iterator()
-  dct = load_dict(path)
-  if haskey(dct, "Aut_bases_6")
-    y = dct["Aut_bases_6"];
-    I = ideal(y);
-    I.gb = Oscar.IdealGens(y);
-    println(QuantumAutomorphismGroups.is_commutative(I))
-  end
-
-end
-
-M = fano_matroid()
-dct = load_dict(M)
-
-is_commutative(dct["Aut_bases_6"])
-
-QuantumAutomorphismGroups.is_commutative(dct["Aut_bases_6"])
-#captilize the first letter of the key "matroid"
-str = "matroid"
-capitalized_str = uppercasefirst(str)
+using Oscar 
+dt = data_table()
+add_names!(dt)
+add_data!(dt)
 
 
-using DataFrames
+dt = load_dt()
 
 
-# Example usage
-dt = DataFrame()
-_name_from_save_path(save_path(M))
+df2 = select(dt.data, ["Name", "Aut_bases_-1", "Aut_circuits_-1"])
+df2 = filter(row -> row["Aut_bases_-1"] !== missing, df2)
+showall(df2)
+show(dt.data, allcols = true)
 
+r2 = dt[uniform_matroid(2,4)]
+r3 = dt[uniform_matroid(3,4)]
+select(DataFrame(r3), ["Name",r"bases"])
 
-dct = Dict("matroid" => "hex", "rank" => 3, "n" => 6)
+pth =save_path(matroid_from_matroid_hex("r0n1_1"))
+pth2 = save_path(matroid_from_matroid_hex("r0n2_1"))
 
-new_row = DataFrame(dct)
-add!
+add_data!(dt, pth)
+add_data!(dt, pth2)
 
-add_data!(dt, dct)
+name = _name_from_savepath(pth)
+df[findfirst(==(name), df.Name), :]
 
+"Name" in names(df)
 
+name = String(_name_from_savepath(pth))
+row = filter(:Name => ==(name), dt.data) 
 
 =#
+

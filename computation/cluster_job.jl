@@ -18,7 +18,7 @@ println("Task number: ", task_number)
 
 
 global Droids = []
-for n in 7:7
+for n in 1:5
     db = Polymake.Polydb.get_db()
     collection = db["Matroids.Small"]
     cursor=Polymake.Polydb.find(collection, Dict("N_ELEMENTS"=>n))
@@ -28,10 +28,11 @@ end
 
 global myDroids = view(Droids,task_number:n_tasks:length(Droids))
     
-
+#bases, circuits, flats
 for M in myDroids
-    compute_and_store_gb(M, :circuits; deg_bound=6)
-    println("Computed for $(matroid_hex(M))")
+    dg_bound = -1
+    compute_and_store_gb(M, :bases; deg_bound=dg_bound)
+    println("Computed for $(matroid_hex(M)) with degree bound $(dg_bound)")
 end
 
 
