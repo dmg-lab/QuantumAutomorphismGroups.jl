@@ -33,8 +33,9 @@ function add_data!(dt::DataTable, path::String)
           I = ideal(y);
           I.gb = Oscar.IdealGens(y);
           
+
           df = _insert_or_overwrite(df, row, name, key, QuantumAutomorphismGroups.is_commutative(I))
-        
+          df = _insert_or_overwrite(df, row, name, key * "_max_deg", maximum(AbstractAlgebra.total_degree.(y)))
           continue
         end
         if length(v) == 4
@@ -98,7 +99,7 @@ function add_name!(dt::DataTable, name::String)
   row = filter(:Name => ==(name), df) 
   if size(row)[1] == 0
     M = matroid_from_matroid_hex(name)
-    append!(df, DataFrame("Name" => name, "Rank" => rank(M), "n" => length(M)),promote = true,cols = :union)
+    append!(df, DataFrame("Name" => name),promote = true,cols = :union)
   end
   
   return df
@@ -121,8 +122,16 @@ dt = data_table()
 add_names!(dt)
 add_data!(dt)
 
+y = load_dict(uniform_matroid(1,3))["Aut_bases_-1"]
+max(deg.(y)) rw
+
 
 dt = load_dt()
+for row in eachrow(dt.data)
+  name = row.Name
+  
+
+end
 
 
 df2 = select(dt.data, ["Name", "Aut_bases_-1", "Aut_circuits_-1"])

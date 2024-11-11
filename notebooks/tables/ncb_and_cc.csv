@@ -1,0 +1,11 @@
+hex & length & rank & girth & n_nonbases & ord(Aut) & Aut_bases_-1_max_deg \\
+\texttt{3f} & 4 & 2 & 3 & 0 & 24 & 3 \\
+\texttt{3ff} & 5 & 2 & 3 & 0 & 120 & 3 \\
+\texttt{0b7} & 5 & 2 & 1 & 4 & 24 & 3 \\
+\texttt{7fff} & 6 & 2 & 3 & 0 & 720 & 3 \\
+\texttt{3fff} & 6 & 2 & 2 & 1 & 48 & 3 \\
+\texttt{16ef} & 6 & 2 & 1 & 5 & 120 & 3 \\
+\texttt{0267} & 6 & 2 & 1 & 9 & 48 & 3 \\
+\texttt{00fff0} & 6 & 3 & 2 & 8 & 48 & 3 \\
+\texttt{0003ff} & 6 & 3 & 3 & 10 & 120 & 3 \\
+\texttt{0000b7} & 6 & 3 & 1 & 14 & 24 & 3 \\
