@@ -121,4 +121,14 @@ function _to_longtable_content(path_to_csv="../data/data_table.csv")
 end
 
 
+#=
+rvlx = min_revlex_basis_encoding(uniform_matroid(1,4))
+ r,n = rank(M), length(M) 
 
+
+  v = Oscar._revlex_basis_to_vector(rvlx)
+
+v1 = zeros(Int, 4 - length(v)%4)
+v2 = vcat(v1, v)
+
+=#
