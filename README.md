@@ -1,5 +1,7 @@
 # QuantumAutomorphismGroups.jl
 
+[![DOI](https://zenodo.org/badge/731067986.svg)](https://doi.org/10.5281/zenodo.16090589)
+
 QuantumAutomorphismGroups.jl is part of an ongoing research project on quantum automorphisms of matroids [[1]](#1). It contains both the code needed to compute the quantum automorphism groups of matroids and the data we computed for several matroids. All the computations were done using the OSCAR system, and the data was encoded using OSCAR's internal machinery [[2]](#2).
 
 
