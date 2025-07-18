@@ -9,9 +9,11 @@ mutable struct DataTable
     path_list::Vector{String}
     data::DataFrame
     DataTable() = new(collect(_data_path_iterator()), DataFrame(:Name => String[]))
+    DataTable(path_list::Vector{String}, data::DataFrame) = new(path_list, data)
 end
 
 data_table() = DataTable()
+data_table(data::DataFrame) = DataTable(collect(_data_path_iterator()), data)
 
 
 function add_data!(dt::DataTable, path::String)
@@ -126,7 +128,7 @@ y = load_dict(uniform_matroid(1,3))["Aut_bases_-1"]
 max(deg.(y)) rw
 
 
-dt = load_dt()
+dt = load_dt();
 for row in eachrow(dt.data)
   name = row.Name
   
@@ -134,16 +136,18 @@ for row in eachrow(dt.data)
 end
 
 
-df2 = select(dt.data, ["Name", "Aut_bases_-1", "Aut_circuits_-1"])
-df2 = filter(row -> row["Aut_bases_-1"] !== missing, df2)
-showall(df2)
+df2 = select(dt.data, ["Name", "Aut_bases_-1", "Aut_circuits_-1","Aut_circuits_6", "Aut_bases_6"]);
+df2 = filter(row -> row["Aut_bases_6"] !== missing || !ismissing(row["Aut_bases_-1"]), df2)
+show(df2)
 show(dt.data, allcols = true)
+dt2 = data_table(df2)
 
-r2 = dt[uniform_matroid(2,4)]
-r3 = dt[uniform_matroid(3,4)]
+
+r2 = dt2[fano_matroid()]
+r3 = dt2[non_fano_matroid()]
 select(DataFrame(r3), ["Name",r"bases"])
 
-pth =save_path(matroid_from_matroid_hex("r0n1_1"))
+pth =save_path(matroid_hex("r0n1_1"))
 pth2 = save_path(matroid_from_matroid_hex("r0n2_1"))
 
 add_data!(dt, pth)
