@@ -93,11 +93,14 @@ Dict{String, Any} with 4 entries:
 
 <a id="1">[1]</a>
 Daniel Corey, Michael Joswig, Julien Schanz, Marcel Wack, Moritz Weber </br>
-Quantum automorphisms of matroids </br>
-[arXiv](https://arxiv.org/abs/2312.13464)
+Quantum automorphisms of matroids, J. Algebra <b>667</b> (2025), </br> [doi: 10.1016/j.jalgebra.2024.11.036](https://doi.org/10.1016/j.jalgebra.2024.11.036); 
+[arXiv version](https://arxiv.org/abs/2312.13464)
 
 <a id="2">[2]</a>
 Antony Della Vecchia, Michael Joswig and Benjamin Lorenz </br>
-A FAIR File Format for Mathematical Software (2023) </br>
-[arXiv](https://arxiv.org/abs/2309.00465)
+A FAIR File Format for Mathematical Software,
+in: Mathematical software – ICMS 2024. Ed. by Kevin Buzzard, Alicia Dickenstein,
+Bettina Eick, Anton Leykin, and Yue Ren. Vol. 14749. Lecture Notes in Computer Science. Springer, pp. 234–244.</br>
+[doi: 10.1007/978-3-031-64529-7_25](https://doi.org/10.1007/978-3-031-64529-7_25); 
+[arXiv version](https://arxiv.org/abs/2309.00465)
 
